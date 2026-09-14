@@ -1,0 +1,48 @@
+{
+  "name": "Riverside Distribution Center - Phase 2",
+  "units": "US",
+  "water_table": 12.0,
+  "criteria": {
+    "fs_bearing": 3.0,
+    "settlement_limit": 1.0,
+    "min_embedment": 2.0,
+    "size_increment": 0.25,
+    "min_width": 2.5,
+    "max_width": 16.0,
+    "bearing_method": "vesic",
+    "time_years": 50
+  },
+  "layers": [
+    {
+      "name": "Sandy fill",
+      "thickness": 4.0,
+      "gamma": 115,
+      "gamma_sat": 122,
+      "spt_n": 15,
+      "soil_class": "clean_sand_nc"
+    },
+    {
+      "name": "Stiff clay",
+      "thickness": 11.0,
+      "gamma": 126,
+      "gamma_sat": 130,
+      "drainage": "undrained",
+      "cohesion": 3.0,
+      "elastic_modulus": 700,
+      "cc": 0.18,
+      "cr": 0.028,
+      "e0": 0.7,
+      "ocr": 4.0
+    },
+    {
+      "name": "Dense sand",
+      "thickness": 30.0,
+      "gamma": 130,
+      "gamma_sat": 136,
+      "spt_n": 40,
+      "soil_class": "clean_sand_nc"
+    }
+  ],
+  "infer_phi_from_spt": true,
+  "loads_csv": "loads.csv"
+}
