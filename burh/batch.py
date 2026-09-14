@@ -168,7 +168,8 @@ def load_project(path: str | Path) -> Project:
         raise ValueError(f"{path}: top level must be a JSON object.")
 
     project = Project(name=data.get("name", path.stem),
-                      units=data.get("units", "US"))
+                      units=data.get("units", "US"),
+                      code=data.get("code", "us_asd"))
 
     layers = data.get("layers")
     if not layers:

@@ -18,9 +18,10 @@ F-10         15.50   15.50    3.44      1.67      3.07    0.995        Settlemen
 F-11                                   -- no valid design --                FAIL
 ```
 
-**[Live sample calculation package →](https://claude.ai/code/artifact/edcbafbb-cd5a-4798-a406-ef83f4f6a1c2)**
-— the real output for the example project below: a schedule sheet plus the full
-derivation for each of twelve footings. Same file as `examples/calculations.html`.
+**[Try it in your browser →](https://claude.ai/code/artifact/8890f5b7-1193-44a0-9c3d-25424befd7dd)**
+— single-footing checker, US and Canadian codes, runs entirely client-side.
+**[Sample calculation package →](https://claude.ai/code/artifact/edcbafbb-cd5a-4798-a406-ef83f4f6a1c2)**
+— the batch output: a schedule sheet plus the full derivation for twelve footings.
 
 ## Why
 
@@ -94,9 +95,38 @@ for r in p.run():
 | Settlement, granular | Schmertmann (1978) strain influence factor |
 | Settlement, cohesive | Terzaghi 1-D consolidation with OCR / recompression |
 | SPT | N60, (N1)60; φ′ and Es correlations with citations |
+| Design frameworks | US allowable stress design, Canadian limit states design |
 
 Units are handled at the API boundary only; **every internal calculation is
 in one consistent SI base set**, so no mixed-unit arithmetic is reachable.
+
+## US and Canadian codes
+
+These are not the same calculation with a different coefficient — they compare
+different quantities:
+
+| | US | Canada |
+|---|---|---|
+| Framework | Allowable stress design | Limit states design |
+| ULS check | q<sub>ult</sub> / FS ≥ **service** pressure | Φ · q<sub>ult</sub> ≥ **factored** pressure |
+| Factor | FS = 3.0 (customary practice, *not* an IBC-prescribed number) | Φ = 0.5 (CFEM) |
+| Load cases | D + L unfactored | max(1.4D, 1.25D + 1.5L), NBC 2020 Table 4.1.3.2 |
+| Settlement | service load | service load — **same in both** |
+
+Mixing the two — a factored load against an allowable capacity, or the reverse —
+is roughly a 40% error in whichever direction is worse, so the framework is
+carried explicitly on the criteria object and never inferred. The footing's own
+self-weight and backfill take the dead-load factor of the same combination, not
+a separate one.
+
+Because both sit on one engine, they can be compared directly. The tool reports
+the **equivalent global factor of safety** for an LSD check (λ/Φ, where λ is the
+factored/service pressure ratio), which lands around **2.6** for a typical
+dead-plus-live column — so Canadian LSD runs roughly 12–15% less conservative on
+bearing than the customary US FS = 3.0.
+
+Neither path verifies code compliance. Provincial amendments (OBC, BC, Alberta,
+Quebec) and the project geotechnical report take precedence over every default.
 
 ## It tells you when it is wrong
 
@@ -124,7 +154,7 @@ caveats cannot be sealed:
 
 ## Validation
 
-`python -m pytest` — 175 tests. Numeric expectations are published values or
+`python -m pytest` — 198 tests. Numeric expectations are published values or
 hand calculations reproduced in the test body, **never snapshots of the
 code's own output**:
 
@@ -138,6 +168,22 @@ code's own output**:
   × g) rather than through the force path the implementation uses.
 - Degenerate cases: φ = 0 strip footing → q_ult → 5.14·su (Prandtl);
   Df = 0 → all depth factors unity; N-γ → 0 at φ = 0.
+
+The browser engine is a separate implementation, so it is checked against the
+Python one rather than trusted:
+
+```
+$ python web/gencases.py 500 && node web/crossvalidate.mjs
+cases:            500
+scalars compared: 7492
+worst deviation:  4.024e-15 on "ngamma"
+PASS - the browser engine matches the Python engine on every case.
+```
+
+Randomised layered profiles, both frameworks, all three N-γ methods, water
+tables above and below the base, eccentric and inclined loads. Any divergence
+beyond 1e-9 on a scalar, or *any* disagreement on a discrete outcome (solved /
+governing criterion / load combination), fails the run.
 
 ## Scope — read this before using it
 
@@ -169,4 +215,15 @@ burh/api.py         unit-aware public API
 burh/report.py      text and HTML calculation packages
 burh/batch.py       CSV / JSON in and out
 burh/cli.py         command line
+burh/codes.py       US ASD and Canadian LSD frameworks
+
+web/engine.js       browser port of the engine (single source)
+web/tool.html       the online tool; engine inlined at build time
+web/build.py        inlines engine.js into tool.html
+web/gencases.py     generates randomised cases from the Python engine
+web/crossvalidate.mjs  replays them through the browser engine and compares
 ```
+
+Build the page with `python web/build.py footing-check.html`. The page and the
+cross-validator share one engine file, so the shipped page cannot drift from
+the one that was validated.

@@ -114,9 +114,42 @@ def test_sliding_reported_when_horizontal_load_present(project):
     assert "Sliding" in calc_package_html(results, project)
 
 
-def test_no_raw_si_leaks_into_us_output(project):
-    """Internal SI must never surface on a US-units sheet."""
-    html = calc_package_html(project.run(), project)
+@pytest.mark.parametrize("water_table,expected_case", [
+    (2.0, "Case I"),      # at/above the base
+    (6.0, "Case II"),     # within B below the base
+    (60.0, "Case III"),   # below the failure zone
+])
+def test_no_raw_si_leaks_into_us_output(water_table, expected_case):
+    """Internal SI must never surface on a US-units sheet.
+
+    Parametrised over all three groundwater cases on purpose: Cases I and II
+    are the ones that carry numbers, and an earlier version of this test used a
+    single fixture that happened to land on Case III - which carries none - so
+    it passed while the leak was live.
+    """
+    p = Project("Leak check", units="US")
+    p.add_layer("Sandy fill", thickness=8, gamma=115, gamma_sat=125, phi=30, spt_n=14)
+    p.add_layer("Dense sand", thickness=40, gamma=128, gamma_sat=134, phi=38, spt_n=40)
+    p.set_water_table(water_table)
+    p.add_column("F-1", dead=120, live=60)
+    results = p.run()
+    assert results[0].design.bearing.gw_note.startswith(expected_case)
+
+    html = calc_package_html(results, p)
     body = re.sub(r"<style>.*?</style>", "", html, flags=re.S)
-    for token in ("kN/m3", " kPa", "kN-m"):
+    for token in ("kN/m3", "kN/m³", " kPa", "kN-m", " m below", " m.<"):
         assert token not in body, f"internal SI unit {token!r} leaked into output"
+    assert calc_sheet_text(results[0], p).count("kN") == 0
+
+
+def test_groundwater_note_reports_distance_in_user_units():
+    p = Project("GW", units="US")
+    p.add_layer("Sandy fill", thickness=8, gamma=115, gamma_sat=125, phi=30, spt_n=14)
+    p.add_layer("Dense sand", thickness=40, gamma=128, gamma_sat=134, phi=38, spt_n=40)
+    p.set_water_table(6.0)
+    p.add_column("F-1", dead=120, live=60)
+    r = p.run()[0]
+    text = calc_sheet_text(r, p)
+    assert "Case II" in text
+    assert "ft below the base" in text
+    assert "pcf" in text

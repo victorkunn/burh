@@ -67,7 +67,7 @@ def calc_sheet_text(result: ProjectResult, project: Project) -> str:
     w(f"  Surcharge q         {_f(u.from_si_stress(b.surcharge_q))} {S}"
       f"   ({'total' if b.drainage is Drainage.UNDRAINED else 'effective'} stress at Df)")
     w(f"  gamma_e (B term)    {_f(u.from_si_unit_weight(b.gamma_e))} {u.label('unit_weight')}")
-    w(f"  {b.gw_note}")
+    w(f"  {_gw_text(b, u)}")
     w("")
     w(f"  Effective area      B' = {_f(u.from_si_length(b.b_eff))} {L}, "
       f"L' = {_f(u.from_si_length(b.l_eff))} {L}")
@@ -261,6 +261,16 @@ def _esc(s: str) -> str:
     return html.escape(str(s))
 
 
+def _gw_text(b, u) -> str:
+    """Groundwater note with any distances and unit weights in USER units."""
+    text = b.gw_note
+    if b.gw_below_base is not None and b.gw_below_base > 0:
+        text += (f" Water table {u.from_si_length(b.gw_below_base):.2f} "
+                 f"{u.label('length')} below the base.")
+    return (f"{text} gamma_e = {u.from_si_unit_weight(b.gamma_e):.2f} "
+            f"{u.label('unit_weight')}.")
+
+
 def _util_badge(v: float) -> str:
     cls = "ok" if v <= 1.0 else "bad"
     return f'<span class="util {cls}">{v:.3f}</span>'
@@ -319,7 +329,7 @@ def _footing_sheet(result: ProjectResult, project: Project,
                         f"({'total' if b.drainage is Drainage.UNDRAINED else 'effective'} stress)"),
         ('<span class="g">&gamma;</span>e (self-weight term)', f"{_f(u.from_si_unit_weight(b.gamma_e))} "
                                         f"{u.label('unit_weight')}"),
-        ("Groundwater", _esc(b.gw_note)),
+        ("Groundwater", _esc(_gw_text(b, u))),
         ("Effective dimensions", f"B&prime; = {_f(u.from_si_length(b.b_eff))} {L}, "
                                  f"L&prime; = {_f(u.from_si_length(b.l_eff))} {L}"),
     ]:

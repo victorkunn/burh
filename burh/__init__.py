@@ -16,6 +16,7 @@ one governs, and emits an auditable calculation package.
 from .api import Project, ProjectResult
 from .batch import load_project, read_loads_csv, write_schedule_csv
 from .bearing import BearingMethod, bearing_factors, ultimate_bearing_capacity
+from .codes import CODES, Approach, DesignCodeSpec, get_code
 from .design import ColumnLoad, DesignCriteria, FootingDesign, design_footing
 from .report import calc_package_html, calc_sheet_text
 from .settlement import settlement
@@ -30,6 +31,7 @@ __all__ = [
     "SoilLayer", "SoilProfile", "Drainage", "PhiCorrelation",
     "ColumnLoad", "DesignCriteria", "FootingDesign", "design_footing",
     "BearingMethod", "bearing_factors", "ultimate_bearing_capacity",
+    "CODES", "Approach", "DesignCodeSpec", "get_code",
     "settlement", "boussinesq_rectangle_center", "newmark_corner_influence",
     "calc_package_html", "calc_sheet_text",
     "load_project", "read_loads_csv", "write_schedule_csv",

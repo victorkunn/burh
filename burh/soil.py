@@ -368,10 +368,15 @@ def phi_from_spt(
     """
     notes: list[str] = []
     if sigma_v_eff < SIGMA_V_FLOOR_KPA:
+        # Quoted in atmospheres, not kPa: the correlation normalises on
+        # atmospheric pressure, so this is both its natural frame and
+        # dimensionless - which keeps the note correct on a sheet printed in
+        # ksf as well as one printed in kPa.
         notes.append(
-            f"evaluated at a floor of {SIGMA_V_FLOOR_KPA:g} kPa rather than the "
-            f"actual {sigma_v_eff:.1f} kPa, which is below the range the "
-            "correlation was regressed over"
+            f"evaluated at the correlation's low-stress floor of "
+            f"{SIGMA_V_FLOOR_KPA / P_ATM_KPA:.2f} atm rather than the actual "
+            f"{sigma_v_eff / P_ATM_KPA:.2f} atm of effective overburden, which is "
+            "below the range it was regressed over"
         )
         sigma_v_eff = SIGMA_V_FLOOR_KPA
     n_60 = n60(n_field, energy_ratio=energy_ratio)

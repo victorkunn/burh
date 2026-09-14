@@ -159,25 +159,31 @@ def inclination_factors(
     return max(ic, 0.0), iq, ig, m
 
 
-def effective_gamma(profile: SoilProfile, df: float, b: float, gamma_moist: float) -> tuple[float, str]:
+def effective_gamma(
+    profile: SoilProfile, df: float, b: float, gamma_moist: float
+) -> tuple[float, str, float | None]:
     """Equivalent unit weight for the self-weight (B) term [kN/m3].
 
     Case I   : water table at or above founding level -> fully buoyant.
     Case II  : water table within B below the base    -> linear transition.
     Case III : water table deeper than Df + B         -> no reduction.
+
+    Returns ``(gamma_e, note, depth_below_base)``. The note is deliberately
+    QUALITATIVE and carries no numbers: the reporting layer owns formatting and
+    knows the user's units. Embedding "kN/m3" here leaks internal SI onto a
+    sheet printed in ksf and pcf.
     """
     dw = profile.water_table_depth
     layer = profile.layer_at(df + b / 2.0)
     gamma_sub = layer.gamma_buoyant
     if not math.isfinite(dw) or dw >= df + b:
-        return gamma_moist, "Case III - water table below the failure zone; no reduction."
+        return gamma_moist, "Case III - water table below the failure zone; no reduction.", None
     if dw <= df:
-        return gamma_sub, f"Case I - water table at/above base; gamma' = {gamma_sub:.2f} kN/m3."
+        return gamma_sub, "Case I - water table at or above the base; fully buoyant.", 0.0
     gamma_e = gamma_sub + ((dw - df) / b) * (gamma_moist - gamma_sub)
     return gamma_e, (
-        f"Case II - water table {dw - df:.2f} m below base; interpolated "
-        f"gamma_e = {gamma_e:.2f} kN/m3."
-    )
+        "Case II - water table within B below the base; linearly interpolated."
+    ), dw - df
 
 
 @dataclass
@@ -222,6 +228,7 @@ class BearingResult:
     term_self_weight: float
 
     gw_note: str = ""
+    gw_below_base: float | None = None
     warnings: list[str] = field(default_factory=list)
 
 
@@ -306,7 +313,7 @@ def ultimate_bearing_capacity(
         v, h, b_eff, l_eff, phi, cohesion, f.nc, f.nq, theta_from_l
     )
 
-    gamma_e, gw_note = effective_gamma(profile, df, b, props.gamma_moist)
+    gamma_e, gw_note, gw_below_base = effective_gamma(profile, df, b, props.gamma_moist)
 
     term_c = cohesion * f.nc * sc * dc * ic
     term_q = surcharge * f.nq * sq * dq * iq
@@ -334,7 +341,7 @@ def ultimate_bearing_capacity(
         factors=f, sc=sc, sq=sq, sg=sg, dc=dc, dq=dq, dg=dg,
         ic=ic, iq=iq, ig=ig, k_depth=k, m_incl=m,
         term_cohesion=term_c, term_surcharge=term_q, term_self_weight=term_g,
-        gw_note=gw_note, warnings=warnings,
+        gw_note=gw_note, gw_below_base=gw_below_base, warnings=warnings,
     )
 
 

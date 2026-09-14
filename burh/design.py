@@ -19,6 +19,7 @@ from .bearing import (
     sliding_resistance,
     ultimate_bearing_capacity,
 )
+from .codes import US_ASD, Approach, DesignCodeSpec, UlsCheck
 from .settlement import SettlementResult, settlement
 from .soil import SoilProfile
 from .units import Units
@@ -43,6 +44,24 @@ class DesignCriteria:
     bearing_method: BearingMethod = BearingMethod.VESIC
     influence_depth_ratio: float = 1.5
     time_years: float = 50.0
+    #: Limit-state framework. Determines whether the ULS bearing check compares
+    #: a SERVICE pressure against q_ult/FS or a FACTORED pressure against
+    #: Phi*q_ult. Defaults to US allowable stress design.
+    code: DesignCodeSpec = US_ASD
+    #: LSD only. Overrides the code's default geotechnical resistance factor.
+    resistance_factor_bearing: float | None = None
+
+    @property
+    def phi_bearing(self) -> float:
+        """Geotechnical resistance factor actually in force (LSD only)."""
+        phi = self.resistance_factor_bearing
+        if phi is None:
+            phi = self.code.resistance_factor
+        if phi is None or not 0.0 < phi <= 1.0:
+            raise ValueError(
+                f"{self.code.name} requires a resistance factor in (0, 1]; got {phi!r}."
+            )
+        return phi
 
     def __post_init__(self) -> None:
         if self.min_width <= 0 or self.max_width <= self.min_width:
@@ -105,6 +124,8 @@ class FootingDesign:
     settlement_utilisation: float = 0.0
     sliding_fs: float | None = None
     concrete_volume: float = 0.0
+    q_service_gross: float = 0.0
+    uls: UlsCheck | None = None
     bearing: BearingResult | None = None
     settlement_result: SettlementResult | None = None
     warnings: list[str] = field(default_factory=list)
@@ -173,15 +194,35 @@ def design_footing(
         """
         l = b * c.aspect_ratio
         t = estimate_thickness(b, load.column_b)
-        q_gross = gross_pressure(v, b, l, df, t, gamma_soil)
-        # Total load delivered to the soil: eccentricity, sliding and
-        # overturning all resist with the full weight, not just the column load.
-        v_total = q_gross * b * l
+        area = b * l
+        # Service gross pressure, including the footing and the soil on top of
+        # it. Settlement always uses this, in every framework.
+        q_service = gross_pressure(v, b, l, df, t, gamma_soil)
+        self_weight = t * GAMMA_CONCRETE + max(0.0, df - t) * gamma_soil
+
+        if c.code.approach is Approach.ASD:
+            q_demand = q_service
+            combo_label = "service (D + L)"
+            dead_factor = 1.0
+        else:
+            combo, v_factored = c.code.governing_combination(load.dead, load.live)
+            # The footing and its backfill are dead load and take the dead
+            # factor of the SAME combination, not a separate one.
+            q_demand = v_factored / area + combo.dead * self_weight
+            combo_label = combo.name
+            dead_factor = combo.dead
+
+        # Eccentricity and inclination are ULS effects, so they are evaluated
+        # with whichever load the framework's ULS check uses.
+        v_total = q_demand * area
+        m_b = load.moment_b * dead_factor if c.code.approach is Approach.LSD else load.moment_b
+        m_l = load.moment_l * dead_factor if c.code.approach is Approach.LSD else load.moment_l
+        h_uls = load.horizontal * dead_factor if c.code.approach is Approach.LSD else load.horizontal
 
         try:
             br = ultimate_bearing_capacity(
-                profile, b=b, l=l, df=df, v=v_total, h=load.horizontal,
-                m_b=load.moment_b, m_l=load.moment_l,
+                profile, b=b, l=l, df=df, v=v_total, h=h_uls,
+                m_b=m_b, m_l=m_l,
                 factor_of_safety=c.factor_of_safety_bearing,
                 method=c.bearing_method,
                 influence_depth_ratio=c.influence_depth_ratio,
@@ -189,10 +230,23 @@ def design_footing(
         except ValueError as exc:
             return None, str(exc)
 
-        bearing_util = q_gross / br.q_allow if br.q_allow > 0 else math.inf
-        bearing_ok = q_gross <= br.q_allow
+        if c.code.approach is Approach.ASD:
+            capacity = br.q_allow          # q_ult / FS
+            factor_label = f"FS = {c.factor_of_safety_bearing:g}"
+        else:
+            capacity = c.phi_bearing * br.q_ult
+            factor_label = f"Phi = {c.phi_bearing:g}"
 
-        st = settlement(profile, b=b, l=l, df=df, q_gross=q_gross,
+        uls = UlsCheck(
+            approach=c.code.approach, demand=q_demand, capacity=capacity,
+            combination=combo_label, factor_label=factor_label,
+            q_ult=br.q_ult, q_service=q_service,
+        )
+        bearing_util = uls.utilisation
+        bearing_ok = uls.ok
+
+        # Serviceability is a SERVICE-load question in every framework.
+        st = settlement(profile, b=b, l=l, df=df, q_gross=q_service,
                         time_years=c.time_years)
         settle_util = st.total / c.settlement_limit
         settle_ok = st.total <= c.settlement_limit
@@ -200,16 +254,29 @@ def design_footing(
         sliding_fs = None
         sliding_ok = True
         if load.horizontal > 0:
-            resistance = sliding_resistance(
-                v_total, br.b_eff, br.l_eff, br.phi, br.cohesion
-            )
-            sliding_fs = resistance / load.horizontal
-            sliding_ok = sliding_fs >= c.factor_of_safety_sliding
+            if c.code.approach is Approach.LSD:
+                # Dead load RESISTS sliding, so it takes its minimum credible
+                # value (0.9D), not the maximum used for the bearing demand.
+                cc = c.code.counteracting
+                v_resist = (cc.factored(load.dead, load.live) / area
+                            + cc.dead * self_weight) * area
+                phi_slide = c.code.resistance_factor_sliding or 0.8
+                resistance = phi_slide * sliding_resistance(
+                    v_resist, br.b_eff, br.l_eff, br.phi, br.cohesion
+                )
+                sliding_fs = resistance / h_uls
+                sliding_ok = sliding_fs >= 1.0
+            else:
+                resistance = sliding_resistance(
+                    v_total, br.b_eff, br.l_eff, br.phi, br.cohesion
+                )
+                sliding_fs = resistance / load.horizontal
+                sliding_ok = sliding_fs >= c.factor_of_safety_sliding
 
         overturning_ok = True
         if load.moment_b or load.moment_l:
             m_resisting = v_total * b / 2.0
-            m_overturning = abs(load.moment_b) + load.horizontal * df
+            m_overturning = abs(m_b) + h_uls * df
             if m_overturning > 0:
                 overturning_ok = (
                     m_resisting / m_overturning >= c.factor_of_safety_overturning
@@ -227,8 +294,10 @@ def design_footing(
             ok=bearing_ok and settle_ok and sliding_ok and overturning_ok,
             b=b, l=l, df=df, thickness=t,
             governing=governing,
-            q_applied_gross=q_gross,
-            q_allow_gross=br.q_allow,
+            q_applied_gross=q_demand,
+            q_allow_gross=capacity,
+            q_service_gross=q_service,
+            uls=uls,
             bearing_utilisation=bearing_util,
             total_settlement=st.total,
             settlement_utilisation=settle_util,

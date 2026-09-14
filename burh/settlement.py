@@ -15,6 +15,7 @@ import math
 from dataclasses import dataclass, field
 
 from .soil import Drainage, SoilProfile, es_from_spt
+from .units import P_ATM_KPA
 from .stress import boussinesq_rectangle_center, influence_depth
 
 
@@ -76,6 +77,7 @@ class SettlementResult:
     net_pressure: float               # [kPa]
     sigma_v0_base: float              # [kPa]
     izp: float
+    zp_over_b: float
     zmax_over_b: float
     sublayers: list[SublayerResult] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
@@ -135,7 +137,8 @@ def settlement(
     if net_q <= 0:
         return SettlementResult(
             total=0.0, immediate=0.0, consolidation=0.0, c1=1.0, c2=1.0,
-            net_pressure=net_q, sigma_v0_base=sigma_v0, izp=0.0, zmax_over_b=0.0,
+            net_pressure=net_q, sigma_v0_base=sigma_v0, izp=0.0,
+            zp_over_b=0.0, zmax_over_b=0.0,
             warnings=[
                 "Net bearing pressure is zero or negative (full compensation); "
                 "settlement taken as zero. Check heave/rebound separately."
@@ -194,10 +197,10 @@ def settlement(
                     )
                 es = es_from_spt(layer.spt_n, layer.energy_ratio, layer.soil_class)
                 warnings.append(
-                    f"Layer {layer.name!r}: Es = {es:.0f} kPa correlated from "
-                    f"N = {layer.spt_n:g} assuming soil_class "
-                    f"{layer.soil_class!r} (Kulhawy & Mayne 1990). Scatter is "
-                    "roughly a factor of 2 - confirm with CPT or lab data."
+                    f"Layer {layer.name!r}: Es correlated from N = {layer.spt_n:g} "
+                    f"as {es / P_ATM_KPA:.0f} x atmospheric pressure, assuming "
+                    f"soil_class {layer.soil_class!r} (Kulhawy & Mayne 1990). "
+                    "Scatter is roughly a factor of 2 - confirm with CPT or lab data."
                 )
                 layer.elastic_modulus = es  # memoise so the warning fires once
             if es <= 0:
@@ -264,6 +267,6 @@ def settlement(
         immediate=immediate,
         consolidation=consol,
         c1=c1, c2=c2, net_pressure=net_q, sigma_v0_base=sigma_v0,
-        izp=izp, zmax_over_b=zmax_b,
+        izp=izp, zp_over_b=zp_b, zmax_over_b=zmax_b,
         sublayers=sub_results, warnings=uniq,
     )

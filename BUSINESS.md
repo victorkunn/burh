@@ -72,6 +72,35 @@ figure is not.
 Do not discount early. In AEC, price is read as a quality signal, and the
 first ten customers set the reference price for everyone they talk to.
 
+## Go to market: free tool first
+
+Lead with the **free single-footing checker**, not with seat sales. It generates
+the warm introductions this plan depends on, it validates demand before any
+sales motion exists, and because it runs entirely client-side you can say
+*"your soil data never leaves your browser"* — which removes the objection that
+kills most online engineering tools. Hosting cost is zero; there is no backend.
+
+The upgrade path is honest and obvious from using it: the free tool does one
+footing, the paid product does the whole job — batch CSV in, footing schedule
+and sealed-ready calculation package out.
+
+Sequence:
+
+1. **Free tool, US and Canadian codes.** Shipped.
+2. **Put it in front of the contacts.** The ask is not "buy this", it is "run a
+   job you already sealed through this and tell me where it disagrees." That
+   either validates the engine against real practice or finds the gap that
+   matters, and it costs them twenty minutes.
+3. **Instrument nothing at first.** Resist adding analytics or an email gate to
+   a tool whose entire trust argument is that it sends nothing anywhere. Count
+   conversations, not sessions.
+4. **Only then** build the paid batch tier, priced per the section above.
+
+Adding Canada roughly doubles the addressable market for the same engine, and
+the limit-states framework is the same work Eurocode 7 will need later — the
+partial-factor machinery is now in place, so item 3 of the roadmap is cheaper
+than it was.
+
 ## Revenue path
 
 | Firms | Seats @ 6 | ARR |

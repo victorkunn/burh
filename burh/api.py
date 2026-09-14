@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .bearing import BearingMethod
+from .codes import CODES, Approach, DesignCodeSpec, get_code
 from .design import ColumnLoad, DesignCriteria, FootingDesign, design_footing
 from .soil import Drainage, PhiCorrelation, SoilLayer, SoilProfile, phi_from_spt
 from .units import UnitSystem, Units
@@ -77,9 +78,11 @@ class Project:
     """A foundation design job: one soil profile, one set of criteria, many
     columns."""
 
-    def __init__(self, name: str = "Untitled", units: str | UnitSystem = "US") -> None:
+    def __init__(self, name: str = "Untitled", units: str | UnitSystem = "US",
+                 code: str | DesignCodeSpec = "us_asd") -> None:
         self.name = name
         self.units = Units(units)
+        self.code = code if isinstance(code, DesignCodeSpec) else get_code(code)
         self._layers: list[SoilLayer] = []
         self._water_table = float("inf")
         self._loads: list[ColumnLoad] = []
@@ -91,6 +94,8 @@ class Project:
         u = self.units
         d = _DEFAULTS[u.system]
         return DesignCriteria(
+            code=self.code,
+            factor_of_safety_bearing=self.code.factor_of_safety or 3.0,
             settlement_limit=u.to_si_settlement(d["settlement_limit"]),
             min_width=u.to_si_length(d["min_width"]),
             max_width=u.to_si_length(d["max_width"]),
@@ -111,8 +116,17 @@ class Project:
         bearing_method: str | BearingMethod | None = None,
         influence_depth_ratio: float | None = None,
         time_years: float | None = None,
+        code: str | DesignCodeSpec | None = None,
+        resistance_factor: float | None = None,
     ) -> "Project":
         u, c = self.units, self._criteria
+        if code is not None:
+            self.code = code if isinstance(code, DesignCodeSpec) else get_code(code)
+            c.code = self.code
+            if self.code.factor_of_safety is not None:
+                c.factor_of_safety_bearing = self.code.factor_of_safety
+        if resistance_factor is not None:
+            c.resistance_factor_bearing = resistance_factor
         if fs_bearing is not None:
             c.factor_of_safety_bearing = fs_bearing
         if fs_sliding is not None:

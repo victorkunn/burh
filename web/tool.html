@@ -1,0 +1,701 @@
+<title>Footing Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+:root{
+  --ground:#e8ecf0; --panel:#ffffff; --panel-2:#f3f6f9; --sunk:#dfe6ec;
+  --ink:#16202b; --ink-soft:#5b6b7a; --ink-faint:#8a98a5;
+  --rule:#ccd6de; --rule-hard:#1f2c39;
+  --blue:#1c4f82; --blue-wash:#e9f0f8;
+  --ochre:#8a5a00; --ochre-wash:#fbf2de;
+  --green:#15613a; --green-wash:#e3f0e9;
+  --red:#9c2620; --red-wash:#f9e8e6;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"Source Sans 3","Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --pad:18px;
+}
+:root:not([data-theme="light"]){
+  @media (prefers-color-scheme: dark){
+    --ground:#0e141a; --panel:#18212b; --panel-2:#1e2833; --sunk:#131b23;
+    --ink:#dde5ec; --ink-soft:#9aa9b6; --ink-faint:#6d7d8a;
+    --rule:#2c3946; --rule-hard:#465564;
+    --blue:#77b0e6; --blue-wash:#17293c;
+    --ochre:#dda945; --ochre-wash:#31280f;
+    --green:#5cc48d; --green-wash:#11291d;
+    --red:#ef8378; --red-wash:#301715;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0e141a; --panel:#18212b; --panel-2:#1e2833; --sunk:#131b23;
+  --ink:#dde5ec; --ink-soft:#9aa9b6; --ink-faint:#6d7d8a;
+  --rule:#2c3946; --rule-hard:#465564;
+  --blue:#77b0e6; --blue-wash:#17293c;
+  --ochre:#dda945; --ochre-wash:#31280f;
+  --green:#5cc48d; --green-wash:#11291d;
+  --red:#ef8378; --red-wash:#301715;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font:15px/1.5 var(--body);-webkit-text-size-adjust:100%}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:20px 48px}
+
+/* ---- masthead ---- */
+.mast{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;
+  flex-wrap:wrap;border-bottom:2.5px solid var(--rule-hard);padding-bottom:10px;margin-bottom:16px}
+h1{font:700 30px/1 var(--display);margin:0;letter-spacing:.01em}
+.tag{font:600 13px/1.3 var(--display);color:var(--blue);text-transform:uppercase;
+  letter-spacing:.12em;margin-top:4px}
+.privacy{font:500 12px/1.4 var(--display);color:var(--ink-soft);text-transform:uppercase;
+  letter-spacing:.07em;text-align:right}
+.privacy b{color:var(--green)}
+
+/* ---- layout ---- */
+.cols{display:grid;grid-template-columns:minmax(330px,400px) 1fr;gap:16px;align-items:start}
+@media(max-width:900px){.cols{grid-template-columns:1fr}}
+
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:3px;
+  padding:var(--pad)}
+.panel + .panel{margin-top:14px}
+h2{font:600 13px/1.2 var(--display);text-transform:uppercase;letter-spacing:.12em;
+  margin:0 0 10px;padding-bottom:6px;border-bottom:1.5px solid var(--rule-hard);
+  display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+h2 .hint{font:400 12px/1.3 var(--body);text-transform:none;letter-spacing:0;
+  color:var(--ink-faint)}
+h3{font:600 12px/1.2 var(--display);text-transform:uppercase;letter-spacing:.09em;
+  color:var(--ink-soft);margin:14px 0 6px}
+
+/* ---- controls ---- */
+label{display:block;font:500 11.5px/1.3 var(--display);text-transform:uppercase;
+  letter-spacing:.07em;color:var(--ink-soft);margin-bottom:3px}
+input,select{width:100%;padding:6px 8px;background:var(--panel-2);color:var(--ink);
+  border:1px solid var(--rule);border-radius:2px;font:500 14px/1.3 var(--mono);
+  font-variant-numeric:tabular-nums}
+select{font-family:var(--body);font-weight:400}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--blue);
+  outline-offset:1px}
+.grid{display:grid;gap:9px 10px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:480px){.g3,.g4{grid-template-columns:1fr 1fr}}
+
+/* ---- jurisdiction stamp ---- */
+.codes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.code-btn{background:var(--panel-2);border:1.5px solid var(--rule);border-radius:2px;
+  padding:9px 10px;cursor:pointer;text-align:left;color:var(--ink);font-family:var(--body)}
+.code-btn .n{font:700 17px/1.1 var(--display);letter-spacing:.02em}
+.code-btn .s{font:500 11px/1.3 var(--display);text-transform:uppercase;
+  letter-spacing:.08em;color:var(--ink-soft);margin-top:2px}
+.code-btn .f{font:500 12px/1.3 var(--mono);color:var(--ink-faint);margin-top:5px}
+.code-btn[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-wash)}
+.code-btn[aria-pressed="true"] .n,.code-btn[aria-pressed="true"] .f{color:var(--blue)}
+
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:2px;overflow:hidden}
+.seg button{background:var(--panel-2);border:0;padding:4px 12px;cursor:pointer;
+  color:var(--ink-soft);font:600 12px/1.4 var(--display);text-transform:uppercase;
+  letter-spacing:.08em}
+.seg button[aria-pressed="true"]{background:var(--blue);color:#fff}
+
+/* ---- layer cards ---- */
+.layer{border:1px solid var(--rule);border-left:3px solid var(--blue);border-radius:2px;
+  padding:10px;margin-bottom:9px;background:var(--panel-2)}
+.layer.cohesive{border-left-color:var(--ochre)}
+.layer-head{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.layer-head input{flex:1;font-family:var(--body);font-weight:600}
+.icon-btn{flex:0 0 auto;width:26px;height:26px;padding:0;background:var(--panel);
+  border:1px solid var(--rule);border-radius:2px;color:var(--ink-soft);cursor:pointer;
+  font:600 15px/1 var(--body)}
+.icon-btn:hover{border-color:var(--red);color:var(--red)}
+.add-btn{width:100%;padding:7px;background:var(--panel-2);border:1px dashed var(--rule);
+  border-radius:2px;color:var(--ink-soft);cursor:pointer;
+  font:600 12px/1.3 var(--display);text-transform:uppercase;letter-spacing:.09em}
+.add-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+/* ---- verdict ---- */
+.verdict{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;
+  border:1.5px solid var(--rule);border-radius:3px;padding:14px 16px;background:var(--panel-2)}
+.verdict.ok{border-color:var(--green);background:var(--green-wash)}
+.verdict.fail{border-color:var(--red);background:var(--red-wash)}
+.size{font:700 40px/1 var(--display);letter-spacing:.01em;white-space:nowrap}
+.verdict.ok .size{color:var(--green)} .verdict.fail .size{color:var(--red)}
+.size small{font-size:19px;font-weight:600;color:var(--ink-soft)}
+.verdict-meta{font-size:14px}
+.verdict-meta b{font:600 13px/1.3 var(--display);text-transform:uppercase;letter-spacing:.09em}
+
+/* ---- limit state checks ---- */
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+@media(max-width:640px){.checks{grid-template-columns:1fr}.verdict{grid-template-columns:1fr}}
+.check{border:1px solid var(--rule);border-radius:3px;padding:12px;background:var(--panel-2)}
+.check.governs{border-color:var(--blue);border-width:1.5px;box-shadow:inset 3px 0 0 var(--blue)}
+.check-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+  margin-bottom:2px}
+.check-name{font:600 12px/1.2 var(--display);text-transform:uppercase;letter-spacing:.1em;
+  color:var(--ink-soft)}
+.check-badge{font:600 10.5px/1.4 var(--display);text-transform:uppercase;letter-spacing:.09em;
+  padding:1px 7px;border-radius:2px;background:var(--blue);color:#fff}
+.check-val{font:600 15px/1.35 var(--mono);font-variant-numeric:tabular-nums;margin:6px 0}
+.check-val .op{color:var(--ink-faint);padding:0 4px}
+.bar{height:7px;background:var(--sunk);border-radius:2px;overflow:hidden;margin-top:9px}
+.bar span{display:block;height:100%;background:var(--green);transition:width .18s ease}
+.bar.over span{background:var(--red)}
+.bar-foot{display:flex;justify-content:space-between;font:500 11.5px/1.4 var(--mono);
+  color:var(--ink-soft);margin-top:4px}
+.basis{font-size:12.5px;color:var(--ink-soft);margin-top:7px;line-height:1.45}
+
+/* ---- tables ---- */
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:13.5px}
+th,td{padding:5px 8px;border-bottom:1px solid var(--rule);text-align:right}
+th:first-child,td:first-child{text-align:left}
+thead th{font:600 11px/1.3 var(--display);text-transform:uppercase;letter-spacing:.07em;
+  color:var(--ink-soft);background:var(--blue-wash);border-bottom:1.5px solid var(--rule-hard);
+  white-space:nowrap}
+tbody td{font-family:var(--mono);font-size:12.5px}
+tbody td:first-child,td.t{font-family:var(--body);text-align:left}
+tfoot td{font-weight:700;font-family:var(--mono);border-top:1.5px solid var(--rule-hard);
+  border-bottom:none}
+.g{text-transform:none}
+
+/* ---- notes ---- */
+.notes{background:var(--ochre-wash);border-left:3px solid var(--ochre);border-radius:2px;
+  padding:10px 14px;margin-top:12px}
+.notes li{margin:6px 0;font-size:13.5px}
+.notes ol,.notes ul{margin:0;padding-left:18px}
+.err{background:var(--red-wash);border-left:3px solid var(--red);border-radius:2px;
+  padding:12px 14px;font-size:14px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-size:13.5px}
+.kv dt{font:500 11.5px/1.5 var(--display);text-transform:uppercase;letter-spacing:.06em;
+  color:var(--ink-soft)}
+.kv dd{margin:0;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.foot{margin-top:22px;padding-top:12px;border-top:1px solid var(--rule);
+  font-size:12.5px;color:var(--ink-soft);line-height:1.55}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="mast">
+    <div>
+      <h1>Footing Check</h1>
+      <div class="tag">Bearing capacity &amp; settlement &middot; US and Canadian codes</div>
+    </div>
+    <div class="privacy">Runs entirely in your browser<br><b>No data is sent anywhere</b></div>
+  </div>
+
+  <div class="cols">
+    <!-- ============ INPUTS ============ -->
+    <div>
+      <div class="panel">
+        <h2>Design code</h2>
+        <div class="codes" id="codes"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:11px">
+          <label style="margin:0">Units</label>
+          <div class="seg" id="units">
+            <button type="button" data-u="US" aria-pressed="true">ft &middot; kip</button>
+            <button type="button" data-u="SI" aria-pressed="false">m &middot; kN</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Column load <span class="hint" id="loadHint"></span></h2>
+        <div class="grid g2">
+          <div><label for="dead">Dead <span id="uF1"></span></label><input id="dead" type="number" step="any"></div>
+          <div><label for="live">Live <span id="uF2"></span></label><input id="live" type="number" step="any"></div>
+          <div><label for="horiz">Horizontal <span id="uF3"></span></label><input id="horiz" type="number" step="any"></div>
+          <div><label for="moment">Moment <span id="uM1"></span></label><input id="moment" type="number" step="any"></div>
+          <div><label for="colb">Column width <span id="uL1"></span></label><input id="colb" type="number" step="any"></div>
+          <div><label for="embed">Embedment <span id="uL2"></span></label><input id="embed" type="number" step="any"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Soil profile <span class="hint">from grade down</span></h2>
+        <div id="layers"></div>
+        <button class="add-btn" type="button" id="addLayer">+ Add layer</button>
+        <div style="margin-top:11px">
+          <label for="wt">Water table depth <span id="uL3"></span> &mdash; blank if not encountered</label>
+          <input id="wt" type="number" step="any" placeholder="not encountered">
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Criteria</h2>
+        <div class="grid g2">
+          <div><label for="settle">Settlement limit <span id="uS1"></span></label><input id="settle" type="number" step="any"></div>
+          <div id="factorWrap"><label for="factor" id="factorLabel">Factor of safety</label><input id="factor" type="number" step="any"></div>
+          <div><label for="maxw">Max width <span id="uL4"></span></label><input id="maxw" type="number" step="any"></div>
+          <div><label for="incr">Size increment <span id="uL5"></span></label><input id="incr" type="number" step="any"></div>
+          <div><label for="aspect">Aspect ratio L/B</label><input id="aspect" type="number" step="any"></div>
+          <div><label for="method">N<span class="g">&gamma;</span> method</label>
+            <select id="method">
+              <option value="vesic">Vesic</option><option value="hansen">Hansen</option>
+              <option value="meyerhof">Meyerhof</option>
+            </select></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RESULTS ============ -->
+    <div>
+      <div class="panel" id="resultPanel"><div id="result"></div></div>
+      <div class="panel" id="detailPanel"><div id="detail"></div></div>
+      <div class="panel">
+        <h2>Basis &amp; limitations</h2>
+        <div id="basis"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>/*__ENGINE__*/</script>
+<script>
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  // ---- state: values are held in USER units, converted at the engine edge ----
+  const EXAMPLE_US = {
+    units: "US", code: "us_asd",
+    load: { dead: 150, live: 75, horizontal: 0, moment: 0, columnB: 1.33, embedment: 2.0 },
+    waterTable: 12,
+    layers: [
+      { name: "Sandy fill", thickness: 4, gamma: 115, gammaSat: 122, drainage: "drained",
+        sptN: 15, phi: "", soilClass: "clean_sand_nc", es: "" },
+      { name: "Stiff clay", thickness: 11, gamma: 126, gammaSat: 130, drainage: "undrained",
+        cohesion: 3.0, es: 700, cc: 0.18, cr: 0.028, e0: 0.70, ocr: 4.0 },
+      { name: "Dense sand", thickness: 30, gamma: 130, gammaSat: 136, drainage: "drained",
+        sptN: 40, phi: "", soilClass: "clean_sand_nc", es: "" },
+    ],
+    criteria: { settlement: 1.0, factor: 3.0, maxWidth: 16, increment: 0.25, aspect: 1.0, method: "vesic" },
+  };
+  let S = JSON.parse(JSON.stringify(EXAMPLE_US));
+
+  // ---- unit conversion of the whole state, so switching keeps one problem ----
+  function convertState(from, to) {
+    if (from === to) return;
+    const A = Burh.units(from), B = Burh.units(to);
+    const L = v => v === "" || v == null ? v : round(B.fromLength(A.toLength(+v)), 4);
+    const F = v => v === "" || v == null ? v : round(B.fromForce(A.toForce(+v)), 3);
+    const P = v => v === "" || v == null ? v : round(B.fromStress(A.toStress(+v)), 4);
+    const W = v => v === "" || v == null ? v : round(B.fromUnitWeight(A.toUnitWeight(+v)), 3);
+    const M = v => v === "" || v == null ? v : round(B.fromMoment(A.toMoment(+v)), 3);
+    const T = v => v === "" || v == null ? v : round(B.fromSettle(A.toSettle(+v)), 4);
+    S.load.dead = F(S.load.dead); S.load.live = F(S.load.live);
+    S.load.horizontal = F(S.load.horizontal); S.load.moment = M(S.load.moment);
+    S.load.columnB = L(S.load.columnB); S.load.embedment = L(S.load.embedment);
+    S.waterTable = L(S.waterTable);
+    S.criteria.settlement = T(S.criteria.settlement);
+    S.criteria.maxWidth = L(S.criteria.maxWidth);
+    S.criteria.increment = L(S.criteria.increment);
+    for (const l of S.layers) {
+      l.thickness = L(l.thickness); l.gamma = W(l.gamma); l.gammaSat = W(l.gammaSat);
+      if (l.cohesion !== undefined) l.cohesion = P(l.cohesion);
+      if (l.es !== undefined) l.es = P(l.es);
+    }
+  }
+  const round = (v, n) => Math.round(v * 10 ** n) / 10 ** n;
+  const num = v => (v === "" || v === null || v === undefined || isNaN(+v)) ? null : +v;
+
+  // ---- build engine inputs -------------------------------------------------
+  function build() {
+    const U = Burh.units(S.units);
+    const code = Burh.CODES[S.code];
+    const layers = S.layers.map(l => {
+      const base = {
+        name: l.name || "Layer", thickness: U.toLength(+l.thickness || 0.01),
+        gamma: U.toUnitWeight(+l.gamma || 18),
+        gammaSat: num(l.gammaSat) === null ? null : U.toUnitWeight(+l.gammaSat),
+        drainage: l.drainage,
+        elasticModulus: num(l.es) === null ? null : U.toStress(+l.es),
+      };
+      if (l.drainage === "undrained")
+        Object.assign(base, { phi: 0, cohesion: U.toStress(+l.cohesion || 0),
+          cc: num(l.cc), cr: num(l.cr), e0: num(l.e0), ocr: num(l.ocr) || 1 });
+      else
+        Object.assign(base, { phi: num(l.phi) === null ? 0 : +l.phi, cohesion: 0,
+          sptN: num(l.sptN), soilClass: l.soilClass || "clean_sand_nc" });
+      return Burh.makeLayer(base);
+    });
+    const profile = Burh.makeProfile(layers,
+      num(S.waterTable) === null ? Infinity : U.toLength(+S.waterTable));
+
+    // Infer phi for granular layers that gave an SPT N but no friction angle.
+    const inferred = [];
+    layers.forEach((l, i) => {
+      if (l.drainage !== "drained" || l.phi > 0 || l.sptN == null) return;
+      const zMid = profile.layerTop(i) + l.thickness / 2;
+      const r = Burh.phiFromSpt(l.sptN, profile.effectiveStress(zMid), l.energyRatio);
+      l.phi = r.phi;
+      inferred.push(`${l.name}: φ′ = ${r.phi.toFixed(1)}° ESTIMATED from N = ${l.sptN} per ${r.cite}.`);
+    });
+
+    const c = S.criteria;
+    const criteria = {
+      code, units: U,
+      factorOfSafetyBearing: code.approach === "ASD" ? (num(c.factor) || 3) : 3,
+      resistanceFactorBearing: code.approach === "LSD" ? (num(c.factor) || code.resistanceFactor) : null,
+      factorOfSafetySliding: 1.5, factorOfSafetyOverturning: 2.0,
+      settlementLimit: U.toSettle(+c.settlement || 25),
+      minWidth: U.toLength(S.units === "US" ? 2.0 : 0.6),
+      maxWidth: U.toLength(+c.maxWidth || 6),
+      sizeIncrement: U.toLength(+c.increment || 0.05),
+      minEmbedment: U.toLength(+S.load.embedment || 0.45),
+      aspectRatio: Math.max(1, num(c.aspect) || 1),
+      bearingMethod: c.method, timeYears: 50, influenceDepthRatio: 1.5,
+    };
+    const load = {
+      mark: "F-1", dead: U.toForce(+S.load.dead || 0), live: U.toForce(+S.load.live || 0),
+      horizontal: U.toForce(+S.load.horizontal || 0),
+      momentB: U.toMoment(+S.load.moment || 0), momentL: 0,
+      columnB: U.toLength(+S.load.columnB || 0.4), columnL: U.toLength(+S.load.columnB || 0.4),
+      embedment: U.toLength(+S.load.embedment || 0.45),
+    };
+    return { U, code, profile, criteria, load, inferred };
+  }
+
+  // ---- rendering -----------------------------------------------------------
+  function renderCodes() {
+    $("codes").innerHTML = Object.values(Burh.CODES).map(c => `
+      <button type="button" class="code-btn" data-code="${c.key}" aria-pressed="${c.key === S.code}">
+        <div class="n">${esc(c.name)}</div>
+        <div class="s">${esc(c.subtitle)}</div>
+        <div class="f">${c.approach === "ASD"
+          ? `FS on q<sub>ult</sub> &middot; service load`
+          : `&Phi; on q<sub>ult</sub> &middot; factored load`}</div>
+      </button>`).join("");
+  }
+
+  function renderLayers() {
+    const U = Burh.units(S.units), lab = U.labels;
+    $("layers").innerHTML = S.layers.map((l, i) => {
+      const coh = l.drainage === "undrained";
+      return `<div class="layer ${coh ? "cohesive" : ""}">
+        <div class="layer-head">
+          <input data-li="${i}" data-f="name" value="${esc(l.name)}" aria-label="Layer name">
+          <button class="icon-btn" type="button" data-del="${i}" aria-label="Remove layer" title="Remove layer">&times;</button>
+        </div>
+        <div class="grid g3">
+          <div><label>Thickness ${lab.length}</label><input type="number" step="any" data-li="${i}" data-f="thickness" value="${l.thickness}"></div>
+          <div><label><span class="g">&gamma;</span> ${lab.unitWeight}</label><input type="number" step="any" data-li="${i}" data-f="gamma" value="${l.gamma}"></div>
+          <div><label><span class="g">&gamma;</span><sub>sat</sub></label><input type="number" step="any" data-li="${i}" data-f="gammaSat" value="${l.gammaSat ?? ""}"></div>
+        </div>
+        <div class="grid g3" style="margin-top:8px">
+          <div><label>Analysis</label>
+            <select data-li="${i}" data-f="drainage">
+              <option value="drained" ${!coh ? "selected" : ""}>Drained</option>
+              <option value="undrained" ${coh ? "selected" : ""}>Undrained</option>
+            </select></div>
+          ${coh ? `
+          <div><label>s<sub>u</sub> ${lab.stress}</label><input type="number" step="any" data-li="${i}" data-f="cohesion" value="${l.cohesion ?? ""}"></div>
+          <div><label>E<sub>s</sub> ${lab.stress}</label><input type="number" step="any" data-li="${i}" data-f="es" value="${l.es ?? ""}"></div>
+          </div><div class="grid g4" style="margin-top:8px">
+          <div><label>C<sub>c</sub></label><input type="number" step="any" data-li="${i}" data-f="cc" value="${l.cc ?? ""}"></div>
+          <div><label>C<sub>r</sub></label><input type="number" step="any" data-li="${i}" data-f="cr" value="${l.cr ?? ""}"></div>
+          <div><label>e<sub>0</sub></label><input type="number" step="any" data-li="${i}" data-f="e0" value="${l.e0 ?? ""}"></div>
+          <div><label>OCR</label><input type="number" step="any" data-li="${i}" data-f="ocr" value="${l.ocr ?? 1}"></div>`
+          : `
+          <div><label>SPT N</label><input type="number" step="any" data-li="${i}" data-f="sptN" value="${l.sptN ?? ""}"></div>
+          <div><label><span class="g">&phi;</span>&prime; deg <span style="text-transform:none">(blank = from N)</span></label><input type="number" step="any" data-li="${i}" data-f="phi" value="${l.phi ?? ""}"></div>
+          </div><div class="grid g2" style="margin-top:8px">
+          <div><label>Sand class</label>
+            <select data-li="${i}" data-f="soilClass">
+              <option value="clean_sand_nc" ${l.soilClass === "clean_sand_nc" ? "selected" : ""}>Clean, NC</option>
+              <option value="clean_sand_oc" ${l.soilClass === "clean_sand_oc" ? "selected" : ""}>Clean, OC</option>
+              <option value="sand_with_fines" ${l.soilClass === "sand_with_fines" ? "selected" : ""}>With fines</option>
+            </select></div>
+          <div><label>E<sub>s</sub> ${lab.stress} <span style="text-transform:none">(blank = from N)</span></label><input type="number" step="any" data-li="${i}" data-f="es" value="${l.es ?? ""}"></div>`}
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  function gwText(b, U) {
+    let s = b.gwNote;
+    if (b.gwBelowBase !== null && b.gwBelowBase > 0)
+      s += ` Water table ${U.fromLength(b.gwBelowBase).toFixed(2)} ${U.labels.length} below the base.`;
+    return `${s} γe = ${U.fromUnitWeight(b.gammaE).toFixed(2)} ${U.labels.unitWeight}.`;
+  }
+
+  function profileSvg(profile, U, b, df) {
+    // Stratum column with the footing drawn on it, to scale. Depth axis only -
+    // the footing's width is shown to the same vertical scale so the reader can
+    // see how far the stress bulb reaches relative to the layers.
+    const W = 300, H = 230, padT = 16, padB = 18, left = 58, right = 14;
+    // Scale to the zone that matters, not the whole boring: a 45 ft boring
+    // under a 2 ft deep footing squashes everything of interest into the top
+    // few percent of the frame.
+    const maxZ = Math.min(profile.totalDepth, Math.max(df + 3 * b, df + 2.5));
+    const truncated = profile.totalDepth > maxZ + 1e-9;
+    const y = z => padT + (z / maxZ) * (H - padT - padB);
+    const fills = ["var(--blue-wash)", "var(--ochre-wash)", "var(--sunk)"];
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:100%;height:auto"
+      role="img" aria-label="Soil profile with the footing drawn to scale">`;
+    profile.layers.forEach((l, i) => {
+      const y0 = y(profile.layerTop(i)), y1 = y(Math.min(profile.layerBottom(i), maxZ));
+      if (y1 <= y0) return;
+      s += `<rect x="${left}" y="${y0}" width="${W - left - right}" height="${y1 - y0}"
+        fill="${l.drainage === "undrained" ? "var(--ochre-wash)" : fills[i % 3]}"
+        stroke="var(--rule)" stroke-width="1"/>`;
+      if (y1 - y0 > 13)
+        s += `<text x="${left + 7}" y="${(y0 + y1) / 2 + 4}" font-size="10.5"
+          font-family="var(--body)" fill="var(--ink-soft)">${esc(l.name)}</text>`;
+      s += `<text x="${left - 6}" y="${y0 + 9}" font-size="9.5" text-anchor="end"
+        font-family="var(--mono)" fill="var(--ink-faint)">${U.fromLength(profile.layerTop(i)).toFixed(1)}</text>`;
+    });
+    // footing
+    const fy = y(df), bw = Math.min((b / maxZ) * (H - padT - padB), W - left - right - 20);
+    const cx = left + (W - left - right) / 2;
+    const th = Math.max(5, (0.35 / maxZ) * (H - padT - padB));
+    s += `<rect x="${cx - bw / 2}" y="${fy}" width="${bw}" height="${th}"
+      fill="var(--blue)" opacity="0.92"/>`;
+    s += `<line x1="${cx}" y1="${Math.max(2, fy - 13)}" x2="${cx}" y2="${fy}"
+      stroke="var(--blue)" stroke-width="2.5"/>`;
+    // influence depth 2B below base
+    const zi = Math.min(df + 2 * b, maxZ);
+    s += `<line x1="${cx - bw / 2 - 6}" y1="${y(zi)}" x2="${cx + bw / 2 + 6}" y2="${y(zi)}"
+      stroke="var(--blue)" stroke-width="1" stroke-dasharray="4 3" opacity="0.75"/>`;
+    s += `<text x="${cx + bw / 2 + 9}" y="${y(zi) + 3.5}" font-size="9"
+      font-family="var(--mono)" fill="var(--blue)">2B</text>`;
+    // water table
+    const wt = profile.waterTableDepth;
+    if (Number.isFinite(wt) && wt <= maxZ) {
+      s += `<line x1="${left}" y1="${y(wt)}" x2="${W - right}" y2="${y(wt)}"
+        stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="6 3"/>`;
+      s += `<text x="${W - right - 3}" y="${y(wt) - 4}" font-size="9" text-anchor="end"
+        font-family="var(--mono)" fill="var(--blue)">WT ${U.fromLength(wt).toFixed(1)}</text>`;
+    }
+    s += `<text x="4" y="${H - 5}" font-size="9" font-family="var(--mono)"
+      fill="var(--ink-faint)">depth, ${U.labels.length}</text>`;
+    if (truncated)
+      s += `<text x="${W - right}" y="${H - 5}" font-size="9" text-anchor="end"
+        font-family="var(--mono)" fill="var(--ink-faint)">boring continues to
+        ${U.fromLength(profile.totalDepth).toFixed(0)}</text>`;
+    s += `</svg>`;
+    return s;
+  }
+
+  function render() {
+    renderCodes(); renderLayers(); syncLabels();
+    let ctx;
+    try { ctx = build(); }
+    catch (e) {
+      $("result").innerHTML = `<h2>Result</h2><div class="err"><b>Input error.</b> ${esc(e.message)}</div>`;
+      $("detail").innerHTML = ""; renderBasis(null); return;
+    }
+    const { U, code, profile, criteria, load, inferred } = ctx;
+    let d;
+    try { d = Burh.designFooting(profile, load, criteria); }
+    catch (e) {
+      $("result").innerHTML = `<h2>Result</h2><div class="err"><b>Cannot evaluate.</b> ${esc(e.message)}</div>`;
+      $("detail").innerHTML = ""; renderBasis(code); return;
+    }
+    const lab = U.labels;
+
+    if (!d.ok && !d.bearing) {
+      $("result").innerHTML = `<h2>Result</h2>
+        <div class="err"><b>No spread footing satisfies the criteria.</b><br>${esc(d.message)}</div>`;
+      $("detail").innerHTML = ""; renderBasis(code); return;
+    }
+
+    const u = d.uls, st = d.settlementResult, b = d.bearing;
+    const bu = u.utilisation, su = d.settlementUtilisation;
+    const govBearing = d.governing === "Bearing capacity";
+    const f2 = (v, n = 2) => v.toFixed(n);
+
+    $("result").innerHTML = `
+      <h2>Result <span class="hint">${esc(code.name)} &middot; ${esc(code.subtitle)}</span></h2>
+      <div class="verdict ${d.ok ? "ok" : "fail"}">
+        <div class="size">${f2(U.fromLength(d.b))} <small>&times;</small> ${f2(U.fromLength(d.l))}
+          <small>${lab.length}</small></div>
+        <div class="verdict-meta">
+          <b>Governed by ${esc(d.governing)}</b><br>
+          Founded ${f2(U.fromLength(d.df))} ${lab.length} below grade &middot;
+          ${f2(U.fromLength(d.thickness))} ${lab.length} thick (estimate)<br>
+          ${d.ok ? "Satisfies every limit state checked." : "<b>Does not satisfy the criteria.</b>"}
+        </div>
+      </div>
+      <div class="checks">
+        <div class="check ${govBearing ? "governs" : ""}">
+          <div class="check-top"><span class="check-name">Ultimate &mdash; bearing</span>
+            ${govBearing ? '<span class="check-badge">Governs</span>' : ""}</div>
+          <div class="check-val">${f2(U.fromStress(u.demand))}<span class="op">&le;</span>${f2(U.fromStress(u.capacity))}
+            <span style="font-size:12px;color:var(--ink-soft)">${lab.stress}</span></div>
+          <div class="bar ${bu > 1 ? "over" : ""}"><span style="width:${Math.min(100, bu * 100).toFixed(1)}%"></span></div>
+          <div class="bar-foot"><span>${(bu * 100).toFixed(0)}% utilised</span><span>${esc(u.factorLabel)}</span></div>
+          <div class="basis">${u.approach === "ASD"
+            ? `Service pressure vs q<sub>ult</sub>/FS. Combination: <b>${esc(u.combination)}</b>.`
+            : `Factored pressure vs &Phi;&middot;q<sub>ult</sub>. Combination: <b>${esc(u.combination)}</b>
+               (&lambda; = ${f2(u.loadFactorRatio, 3)}), equivalent to a global FS of
+               <b>${f2(u.equivalentGlobalFs)}</b>.`}</div>
+        </div>
+        <div class="check ${!govBearing ? "governs" : ""}">
+          <div class="check-top"><span class="check-name">Serviceability &mdash; settlement</span>
+            ${!govBearing ? '<span class="check-badge">Governs</span>' : ""}</div>
+          <div class="check-val">${U.fromSettle(d.totalSettlement).toFixed(3)}<span class="op">&le;</span>${U.fromSettle(criteria.settlementLimit).toFixed(3)}
+            <span style="font-size:12px;color:var(--ink-soft)">${lab.small}</span></div>
+          <div class="bar ${su > 1 ? "over" : ""}"><span style="width:${Math.min(100, su * 100).toFixed(1)}%"></span></div>
+          <div class="bar-foot"><span>${(su * 100).toFixed(0)}% utilised</span><span>service load</span></div>
+          <div class="basis">Schmertmann ${U.fromSettle(st.immediate).toFixed(3)} +
+            consolidation ${U.fromSettle(st.consolidation).toFixed(3)} ${lab.small}.
+            Checked at unfactored load in both codes.</div>
+        </div>
+      </div>
+      ${d.slidingFs !== null ? `<div class="basis" style="margin-top:10px">
+        <b>Sliding:</b> ${code.approach === "LSD"
+          ? `factored resistance / factored load = ${f2(d.slidingFs)} (must be &ge; 1.0, &Phi; = ${code.resistanceFactorSliding})`
+          : `FS = ${f2(d.slidingFs)} (required ${criteria.factorOfSafetySliding})`}</div>` : ""}`;
+
+    const rows = (b.factors.nc * 0 === 0) ? [
+      ["Cohesion", b.factors.nc, b.sc, b.dc, b.ic, b.termCohesion],
+      ["Surcharge", b.factors.nq, b.sq, b.dq, b.iq, b.termSurcharge],
+      ["Self weight", b.factors.ngamma, b.sg, b.dg, b.ig, b.termSelfWeight],
+    ] : [];
+
+    $("detail").innerHTML = `
+      <h2>Derivation <span class="hint">every intermediate, so it can be checked</span></h2>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:16px;align-items:start">
+        <div>
+          <div class="tw"><table>
+            <thead><tr><th>Term</th><th>N</th><th>shape s</th><th>depth d</th><th>incl. i</th>
+              <th>Contribution<span style="display:block;font-weight:500;text-transform:none">(${lab.stress})</span></th></tr></thead>
+            <tbody>${rows.map(r => `<tr><td class="t">${r[0]}</td><td>${r[1].toFixed(3)}</td>
+              <td>${r[2].toFixed(3)}</td><td>${r[3].toFixed(3)}</td><td>${r[4].toFixed(3)}</td>
+              <td>${U.fromStress(r[5]).toFixed(2)}</td></tr>`).join("")}</tbody>
+            <tfoot><tr><td colspan="5">q<sub>ult</sub> gross ultimate</td>
+              <td>${U.fromStress(b.qUlt).toFixed(2)}</td></tr></tfoot>
+          </table></div>
+          <h3>Inputs actually used</h3>
+          <dl class="kv">
+            <dt>Analysis</dt><dd>${esc(b.drainage)}</dd>
+            <dt><span class="g">&phi;</span>&prime; zone average</dt><dd>${f2(b.phi, 1)}&deg;</dd>
+            <dt>c zone average</dt><dd>${f2(U.fromStress(b.cohesion))} ${lab.stress}</dd>
+            <dt>Surcharge q</dt><dd>${f2(U.fromStress(b.surchargeQ))} ${lab.stress}
+              (${b.drainage === "undrained" ? "total" : "effective"})</dd>
+            <dt><span class="g">&gamma;</span><sub>e</sub></dt><dd>${f2(U.fromUnitWeight(b.gammaE))} ${lab.unitWeight}</dd>
+            <dt>Groundwater</dt><dd style="font-family:var(--body)">${esc(gwText(b, U))}</dd>
+            <dt>Effective B&prime;</dt><dd>${f2(U.fromLength(b.bEff))} ${lab.length}</dd>
+            <dt>C1 / C2</dt><dd>${st.c1.toFixed(4)} / ${st.c2.toFixed(4)}</dd>
+            <dt>I<sub>zp</sub></dt><dd>${st.izp.toFixed(4)} at ${st.zpOverB.toFixed(2)}B, zero at ${st.zmaxOverB.toFixed(1)}B</dd>
+          </dl>
+        </div>
+        <div>${profileSvg(profile, U, d.b, d.df)}</div>
+      </div>
+      ${(d.warnings.length || inferred.length) ? `<div class="notes">
+        <h3 style="margin-top:0;color:var(--ochre)">Engineering notes &mdash; read before relying on this</h3>
+        <ol>${[...inferred, ...d.warnings].map(w => `<li>${esc(w)}</li>`).join("")}</ol></div>` : ""}`;
+
+    renderBasis(code);
+  }
+
+  function renderBasis(code) {
+    if (!code) { $("basis").innerHTML = ""; return; }
+    $("basis").innerHTML = `
+      <p style="margin:0 0 8px;font-size:13.5px"><b>${esc(code.name)} &mdash; ${esc(code.subtitle)}.</b>
+        ${esc(code.citation)}.</p>
+      <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--ink-soft);line-height:1.5">
+        ${code.notes.map(n => `<li style="margin:6px 0">${esc(n)}</li>`).join("")}
+      </ul>`;
+  }
+
+  function syncLabels() {
+    const lab = Burh.units(S.units).labels, code = Burh.CODES[S.code];
+    $("uF1").textContent = lab.force; $("uF2").textContent = lab.force;
+    $("uF3").textContent = lab.force; $("uM1").textContent = lab.moment;
+    $("uL1").textContent = lab.length; $("uL2").textContent = lab.length;
+    $("uL3").textContent = lab.length; $("uL4").textContent = lab.length;
+    $("uL5").textContent = lab.length; $("uS1").textContent = lab.small;
+    $("loadHint").textContent = code.approach === "ASD"
+      ? "unfactored service loads" : "unfactored — the tool applies the load factors";
+    $("factorLabel").innerHTML = code.approach === "ASD"
+      ? "Factor of safety on q<sub>ult</sub>" : "Resistance factor &Phi; on q<sub>ult</sub>";
+    for (const [id, v] of [["dead", S.load.dead], ["live", S.load.live], ["horiz", S.load.horizontal],
+      ["moment", S.load.moment], ["colb", S.load.columnB], ["embed", S.load.embedment],
+      ["wt", S.waterTable], ["settle", S.criteria.settlement], ["factor", S.criteria.factor],
+      ["maxw", S.criteria.maxWidth], ["incr", S.criteria.increment], ["aspect", S.criteria.aspect]]) {
+      const el = $(id);
+      if (el && document.activeElement !== el) el.value = v ?? "";
+    }
+    const m = $("method"); if (m && document.activeElement !== m) m.value = S.criteria.method;
+    for (const btn of document.querySelectorAll("#units button"))
+      btn.setAttribute("aria-pressed", String(btn.dataset.u === S.units));
+  }
+
+  // ---- events --------------------------------------------------------------
+  document.addEventListener("input", e => {
+    const t = e.target;
+    if (t.dataset.li !== undefined) {
+      const l = S.layers[+t.dataset.li];
+      l[t.dataset.f] = t.type === "number" ? (t.value === "" ? "" : t.value) : t.value;
+      if (t.dataset.f === "drainage") { renderLayers(); }
+      render(); return;
+    }
+    const map = { dead: "load.dead", live: "load.live", horiz: "load.horizontal",
+      moment: "load.moment", colb: "load.columnB", embed: "load.embedment",
+      wt: "waterTable", settle: "criteria.settlement", factor: "criteria.factor",
+      maxw: "criteria.maxWidth", incr: "criteria.increment", aspect: "criteria.aspect",
+      method: "criteria.method" };
+    const path = map[t.id];
+    if (!path) return;
+    const [a, bKey] = path.split(".");
+    if (bKey) S[a][bKey] = t.value === "" ? "" : t.value; else S[a] = t.value === "" ? "" : t.value;
+    render();
+  });
+  document.addEventListener("change", e => {
+    if (e.target.id === "method" || e.target.dataset.f === "drainage"
+        || e.target.dataset.f === "soilClass") render();
+  });
+  document.addEventListener("click", e => {
+    const codeBtn = e.target.closest("[data-code]");
+    if (codeBtn) {
+      S.code = codeBtn.dataset.code;
+      const code = Burh.CODES[S.code];
+      const wantUnits = S.code === "canada_lsd" ? "SI" : "US";
+      if (wantUnits !== S.units) { convertState(S.units, wantUnits); S.units = wantUnits; }
+      S.criteria.factor = code.approach === "ASD" ? code.factorOfSafety : code.resistanceFactor;
+      S.criteria.settlement = round(Burh.units(S.units).fromSettle(code.settlementLimit), 3);
+      render(); return;
+    }
+    const uBtn = e.target.closest("#units button");
+    if (uBtn && uBtn.dataset.u !== S.units) {
+      convertState(S.units, uBtn.dataset.u); S.units = uBtn.dataset.u; render(); return;
+    }
+    const del = e.target.closest("[data-del]");
+    if (del) {
+      if (S.layers.length > 1) S.layers.splice(+del.dataset.del, 1);
+      render(); return;
+    }
+    if (e.target.id === "addLayer") {
+      const U = Burh.units(S.units);
+      S.layers.push({ name: `Layer ${S.layers.length + 1}`,
+        thickness: round(U.fromLength(3), 2), gamma: round(U.fromUnitWeight(19), 1),
+        gammaSat: round(U.fromUnitWeight(20.5), 1), drainage: "drained",
+        sptN: 20, phi: "", soilClass: "clean_sand_nc", es: "" });
+      render();
+    }
+  });
+
+  $("foot").innerHTML = `
+    <b>Scope.</b> This checks geotechnical bearing capacity and settlement for a single
+    rectangular spread footing. Reinforced concrete design &mdash; flexure, one-way and
+    two-way shear, development &mdash; is NOT covered; the thickness shown is a self-weight
+    estimate, not a structural design. Correlated soil parameters are estimates with roughly
+    a factor-of-two scatter and do not replace laboratory or in-situ testing. Nothing here
+    verifies code compliance, and the governing code edition, local amendments and the
+    project geotechnical report take precedence over every default. Output requires review
+    and sealing by a licensed engineer, who remains responsible for the design.<br><br>
+    <b>Method.</b> Vesic general bearing capacity equation (Meyerhof and Hansen N<span class="g">&gamma;</span>
+    selectable) on Meyerhof effective area; Schmertmann (1978) strain influence factor for
+    granular settlement; Terzaghi one-dimensional consolidation with OCR and recompression
+    for cohesive layers; Newmark integration of the Boussinesq point solution for stress
+    distribution. The engine in this page is cross-checked against a separately validated
+    reference implementation over 500 randomised cases &mdash; agreement to 4&times;10<sup>-15</sup>.`;
+
+  render();
+})();
+</script>
