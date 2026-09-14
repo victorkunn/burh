@@ -288,6 +288,26 @@ def test_strong_over_weak_is_flagged():
     assert any("punching" in w.lower() for w in r.warnings)
 
 
+def test_weak_over_strong_names_two_different_layers():
+    """The warning must name the weak layer AND the strong one beneath it -
+    not the same layer twice."""
+    profile = SoilProfile([
+        SoilLayer("Loose fill", 1.5, 17.0, phi=28.0, spt_n=6),
+        SoilLayer("Stiff clay", 10.0, 19.8, drainage=Drainage.UNDRAINED,
+                  cohesion=143.0, cc=0.18, e0=0.7),
+    ])
+    r = ultimate_bearing_capacity(profile, b=2.0, l=2.0, df=0.6, v=300.0)
+    note = next(w for w in r.warnings if "Weak layer" in w)
+    assert "Loose fill" in note and "Stiff clay" in note
+    assert note.count("Loose fill") == 1, f"same layer named twice: {note}"
+
+
+def test_homogeneous_zone_produces_no_layering_warning():
+    profile = SoilProfile([SoilLayer("Sand", 30.0, 18.0, phi=33.0, spt_n=22)])
+    r = ultimate_bearing_capacity(profile, b=2.0, l=2.0, df=1.0, v=500.0)
+    assert not any("layer" in w.lower() and "over" in w.lower() for w in r.warnings)
+
+
 def test_shallow_boring_is_flagged():
     profile = SoilProfile([SoilLayer("Sand", 2.0, 18.0, phi=32.0, spt_n=20)])
     r = ultimate_bearing_capacity(profile, b=3.0, l=3.0, df=1.0, v=500.0)

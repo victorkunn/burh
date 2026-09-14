@@ -18,6 +18,10 @@ F-10         15.50   15.50    3.44      1.67      3.07    0.995        Settlemen
 F-11                                   -- no valid design --                FAIL
 ```
 
+**[Live sample calculation package →](https://claude.ai/code/artifact/edcbafbb-cd5a-4798-a406-ef83f4f6a1c2)**
+— the real output for the example project below: a schedule sheet plus the full
+derivation for each of twelve footings. Same file as `examples/calculations.html`.
+
 ## Why
 
 On that job **settlement governs every single footing, and bearing
@@ -120,7 +124,7 @@ caveats cannot be sealed:
 
 ## Validation
 
-`python -m pytest` — 173 tests. Numeric expectations are published values or
+`python -m pytest` — 175 tests. Numeric expectations are published values or
 hand calculations reproduced in the test body, **never snapshots of the
 code's own output**:
 

@@ -403,24 +403,29 @@ def averaged_properties(
         drainage = drainages.pop()
 
     if len(seen) > 1:
-        strengths = [
-            lay.cohesion + 50.0 * math.tan(math.radians(lay.phi)) for _, lay in seen
-        ]
+        # Crude strength proxy, used only to decide whether to WARN - never to
+        # compute capacity. It puts cohesion and friction on one axis by
+        # evaluating shear strength at a nominal 50 kPa normal stress.
+        def strength(layer) -> float:
+            return layer.cohesion + 50.0 * math.tan(math.radians(layer.phi))
+
+        strengths = [strength(lay) for _, lay in seen]
         lo, hi = min(strengths), max(strengths)
         if lo > 0 and hi / lo > 1.5:
             top = seen[0][1]
-            worst = min(seen, key=lambda s: s[1].cohesion + 50.0 * math.tan(math.radians(s[1].phi)))[1]
-            if worst is not top:
+            weakest = min(seen, key=lambda item: strength(item[1]))[1]
+            strongest = max(seen, key=lambda item: strength(item[1]))[1]
+            if weakest is not top:
                 warnings.append(
-                    f"Strong layer ({top.name}) over weaker layer ({worst.name}) within "
-                    "the failure zone. The averaged solution is UNCONSERVATIVE here; a "
-                    "punching-shear check (Meyerhof & Hanna 1978) is required."
+                    f"Strong layer ({top.name}) over weaker layer ({weakest.name}) "
+                    "within the failure zone. The averaged solution is UNCONSERVATIVE "
+                    "here; a punching-shear check (Meyerhof & Hanna 1978) is required."
                 )
-            else:
+            elif strongest is not top:
                 warnings.append(
-                    f"Weak layer ({top.name}) over stronger layer ({worst.name}) within "
-                    "the failure zone. Averaging is conservative but crude; consider "
-                    "bearing on the deeper stratum."
+                    f"Weak layer ({top.name}) over stronger layer ({strongest.name}) "
+                    "within the failure zone. Averaging is conservative but crude; "
+                    "consider founding on the deeper stratum."
                 )
 
     phi = math.degrees(math.atan(tan_phi))

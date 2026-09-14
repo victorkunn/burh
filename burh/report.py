@@ -18,6 +18,10 @@ from .soil import Drainage
 from .units import Units
 
 
+#: Proper names for the N-gamma formulations, for display only.
+_METHOD_LABEL = {"vesic": "Vesic", "meyerhof": "Meyerhof", "hansen": "Hansen"}
+
+
 def _f(x: float, n: int = 2) -> str:
     return f"{x:,.{n}f}"
 
@@ -137,48 +141,119 @@ def calc_sheet_text(result: ProjectResult, project: Project) -> str:
 # --------------------------------------------------------------------------
 
 _CSS = """
-:root{--ink:#16202b;--mut:#5b6b7c;--line:#d6dee6;--bg:#fff;--accent:#0b5cad;
---warn-bg:#fff6e0;--warn-line:#e0a52a;--bad:#b3261e;--good:#1a6b3c;}
+:root{
+  --paper:#ffffff;
+  --ground:#e4e9ed;          /* cool grey, biased toward the drafting blue */
+  --ink:#1a2530;
+  --ink-soft:#5a6b7a;
+  --rule:#ccd5dd;
+  --rule-hard:#1a2530;
+  --blue:#1c4f82;            /* drafting ink */
+  --blue-wash:#eef3f9;
+  --ochre:#8a5a00;           /* redline note */
+  --ochre-wash:#fdf4e0;
+  --red:#9c2620;
+  --red-wash:#faeae8;
+  --green:#16603a;
+  --green-wash:#e6f1eb;
+  --display:"Barlow Condensed","Arial Narrow",Haettenschweiler,sans-serif;
+  --body:"Source Sans 3","Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
 *{box-sizing:border-box}
-body{margin:0;background:#eef2f6;color:var(--ink);
-font:13px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-.sheet{background:var(--bg);max-width:8.5in;margin:16px auto;padding:0.55in 0.6in;
-box-shadow:0 1px 4px rgba(20,30,45,.14)}
-h1{font-size:19px;margin:0 0 2px}
-h2{font-size:13px;text-transform:uppercase;letter-spacing:.07em;margin:22px 0 7px;
-padding-bottom:4px;border-bottom:1.5px solid var(--ink)}
-h3{font-size:12px;margin:15px 0 5px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
-.hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
-border-bottom:2.5px solid var(--ink);padding-bottom:9px;margin-bottom:6px;flex-wrap:wrap}
-.meta{font-size:11px;color:var(--mut);text-align:right;white-space:nowrap}
-table{border-collapse:collapse;width:100%;margin:7px 0;font-variant-numeric:tabular-nums}
-th,td{padding:4px 7px;border-bottom:1px solid var(--line);text-align:right}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font:15px/1.55 var(--body);-webkit-text-size-adjust:100%}
+.sheet{background:var(--paper);max-width:8.5in;margin:18px auto;
+  padding-block:0.5in;padding-inline:0.6in;border:1px solid var(--rule);
+  box-shadow:0 1px 3px rgba(26,37,48,.10)}
+
+/* --- title block ------------------------------------------------------- */
+.tb{display:grid;grid-template-columns:1fr auto;gap:6px 22px;align-items:end;
+  border-bottom:2.5px solid var(--rule-hard);padding-bottom:8px}
+.tb h1{font:600 26px/1.05 var(--display);margin:0;letter-spacing:.005em;
+  text-wrap:balance}
+.tb .sub{font:500 15px/1.2 var(--display);color:var(--blue);
+  text-transform:uppercase;letter-spacing:.10em;margin-top:3px}
+.tb .stamp{font:500 12px/1.5 var(--display);color:var(--ink-soft);
+  text-transform:uppercase;letter-spacing:.09em;text-align:right;
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.tb .stamp b{color:var(--ink);font-weight:600}
+
+h2{font:600 15px/1.2 var(--display);text-transform:uppercase;letter-spacing:.11em;
+  margin:26px 0 8px;padding-bottom:5px;border-bottom:1.5px solid var(--rule-hard)}
+h3{font:600 13px/1.2 var(--display);text-transform:uppercase;letter-spacing:.09em;
+  color:var(--ink-soft);margin:16px 0 6px}
+
+/* --- tables ------------------------------------------------------------ */
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;margin:8px 0;
+  font-variant-numeric:tabular-nums;font-size:14px}
+th,td{padding:5px 8px;border-bottom:1px solid var(--rule);text-align:right}
 th:first-child,td:first-child{text-align:left}
-thead th{background:#f3f6f9;border-bottom:1.5px solid var(--ink);font-size:11px;
-text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
-tfoot td{font-weight:700;border-top:1.5px solid var(--ink);border-bottom:none}
-.kv{display:grid;grid-template-columns:minmax(150px,auto) 1fr;gap:2px 14px;margin:7px 0}
-.kv dt{color:var(--mut)}
+thead th{font:600 11.5px/1.3 var(--display);text-transform:uppercase;
+  letter-spacing:.07em;color:var(--ink-soft);background:var(--blue-wash);
+  border-bottom:1.5px solid var(--rule-hard);white-space:nowrap}
+tbody td{font-family:var(--mono);font-size:13px}
+/* Text cells opt out of the monospace/right-aligned numeric treatment. */
+tbody td:first-child,td.t{font-family:var(--body);text-align:left}
+/* Greek symbols are quantity names: gamma is not Gamma, phi is not Phi, so
+   they must escape the uppercase transform on headings and labels. */
+.g{text-transform:none}
+thead th .u{display:block;font-weight:500;opacity:.8;text-transform:none;
+  letter-spacing:.02em}
+tfoot td{font-weight:700;border-top:1.5px solid var(--rule-hard);border-bottom:none;
+  font-family:var(--mono)}
+
+/* --- key/value ---------------------------------------------------------- */
+.kv{display:grid;grid-template-columns:minmax(160px,auto) 1fr;gap:3px 18px;margin:8px 0}
+.kv dt{font:500 13px/1.5 var(--display);text-transform:uppercase;
+  letter-spacing:.06em;color:var(--ink-soft)}
 .kv dd{margin:0;font-variant-numeric:tabular-nums}
-.eq{background:#f5f8fa;border-left:3px solid var(--accent);padding:8px 11px;margin:9px 0;
-font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;
-white-space:pre-wrap;overflow-x:auto}
-.util{display:inline-block;padding:1px 9px;border-radius:9px;font-weight:700;font-size:12px}
-.ok{background:#e4f3ea;color:var(--good)} .bad{background:#fbe6e4;color:var(--bad)}
-.gov{background:#eaf1fa;border:1px solid #b9d0ec;border-radius:5px;padding:9px 12px;margin:10px 0}
-.gov b{color:var(--accent)}
-.notes{background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:5px;
-padding:9px 13px;margin:12px 0}
-.notes li{margin:5px 0}
-.toc a{color:var(--accent);text-decoration:none}
-.toc td{border-bottom:1px dotted var(--line)}
-.fail{background:#fbe6e4;border:1px solid var(--bad);border-radius:5px;padding:11px 13px}
-.disc{font-size:10.5px;color:var(--mut);border-top:1px solid var(--line);
-margin-top:22px;padding-top:9px}
-@media print{body{background:#fff}.sheet{box-shadow:none;margin:0;max-width:none;
-page-break-after:always}.sheet:last-child{page-break-after:auto}}
-@media(max-width:640px){.sheet{padding:18px 14px;margin:8px}
-.kv{grid-template-columns:1fr}.kv dt{margin-top:6px}}
+
+/* --- computation blocks ------------------------------------------------- */
+.eq{background:var(--blue-wash);border-left:3px solid var(--blue);
+  padding:10px 13px;margin:10px 0;font-family:var(--mono);font-size:13px;
+  line-height:1.65;white-space:pre-wrap;overflow-x:auto}
+
+.util{display:inline-block;padding:1px 10px;border-radius:2px;font-weight:700;
+  font-size:13px;font-family:var(--mono)}
+.ok{background:var(--green-wash);color:var(--green)}
+.bad{background:var(--red-wash);color:var(--red)}
+
+.gov{background:var(--blue-wash);border-left:3px solid var(--blue);
+  padding:10px 13px;margin:12px 0}
+.gov b{color:var(--blue)}
+
+.notes{background:var(--ochre-wash);border-left:3px solid var(--ochre);
+  padding:10px 15px;margin:14px 0}
+.notes li{margin:6px 0}
+.notes h3{color:var(--ochre)}
+
+.fail{background:var(--red-wash);border-left:3px solid var(--red);
+  padding:12px 15px}
+
+.toc a{color:var(--blue);text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.toc td{border-bottom:1px dotted var(--rule)}
+
+.disc{font-size:12px;line-height:1.5;color:var(--ink-soft);
+  border-top:1px solid var(--rule);margin-top:26px;padding-top:10px}
+
+a:focus-visible,:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+@media print{
+  body{background:#fff}
+  .sheet{box-shadow:none;border:none;margin:0;max-width:none;page-break-after:always}
+  .sheet:last-child{page-break-after:auto}
+}
+@media(max-width:640px){
+  .sheet{padding-inline:16px;padding-block:22px;margin:8px}
+  .tb{grid-template-columns:1fr}
+  .tb .stamp{text-align:left}
+  .kv{grid-template-columns:1fr}
+  .kv dt{margin-top:8px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 """
 
 
@@ -191,22 +266,30 @@ def _util_badge(v: float) -> str:
     return f'<span class="util {cls}">{v:.3f}</span>'
 
 
-def _header(project: Project, subtitle: str) -> str:
+def _header(project: Project, subtitle: str,
+            sheet: int | None = None, total: int | None = None) -> str:
+    """Drawing title block: project and sheet on the left, the stamp fields a
+    reviewer looks for on the right."""
+    num = (f"Sheet <b>{sheet}</b> of <b>{total}</b><br>"
+           if sheet is not None and total is not None else "")
     return (
-        f'<div class="hdr"><div><h1>{_esc(project.name)}</h1>'
-        f'<div style="color:var(--mut)">{_esc(subtitle)}</div></div>'
-        f'<div class="meta">Shallow foundation design<br>'
-        f'Units: {project.units.system.value}<br>{date.today().isoformat()}</div></div>'
+        f'<div class="tb"><div><h1>{_esc(project.name)}</h1>'
+        f'<div class="sub">{_esc(subtitle)}</div></div>'
+        f'<div class="stamp">{num}'
+        f'Shallow foundation design<br>'
+        f'Units <b>{project.units.system.value}</b><br>'
+        f'{date.today().isoformat()}</div></div>'
     )
 
 
-def _footing_sheet(result: ProjectResult, project: Project) -> str:
+def _footing_sheet(result: ProjectResult, project: Project,
+                   sheet: int | None = None, total: int | None = None) -> str:
     d = result.design
     u: Units = result.units
     L, S = u.label("length"), u.label("stress")
     SL = u.label("small_length")
     p: list[str] = [f'<section class="sheet" id="f-{_esc(d.mark)}">']
-    p.append(_header(project, f"Footing {d.mark}"))
+    p.append(_header(project, f"Footing {d.mark}", sheet, total))
 
     if not d.ok and d.bearing is None:
         p.append(f'<div class="fail"><b>No valid design.</b><br>{_esc(d.message)}</div>')
@@ -229,12 +312,12 @@ def _footing_sheet(result: ProjectResult, project: Project) -> str:
     p.append('<dl class="kv">')
     for k, v in [
         ("Analysis", b.drainage.value),
-        ("Method", b.factors.method.value),
-        ("&phi;&prime; (zone average)", f"{_f(b.phi,1)}&deg;"),
+        ("Method", _METHOD_LABEL.get(b.factors.method.value, b.factors.method.value)),
+        ('<span class="g">&phi;&prime;</span> (zone average)', f"{_f(b.phi,1)}&deg;"),
         ("c (zone average)", f"{_f(u.from_si_stress(b.cohesion))} {S}"),
         ("Surcharge q", f"{_f(u.from_si_stress(b.surcharge_q))} {S} "
                         f"({'total' if b.drainage is Drainage.UNDRAINED else 'effective'} stress)"),
-        ("&gamma;e (self-weight term)", f"{_f(u.from_si_unit_weight(b.gamma_e))} "
+        ('<span class="g">&gamma;</span>e (self-weight term)', f"{_f(u.from_si_unit_weight(b.gamma_e))} "
                                         f"{u.label('unit_weight')}"),
         ("Groundwater", _esc(b.gw_note)),
         ("Effective dimensions", f"B&prime; = {_f(u.from_si_length(b.b_eff))} {L}, "
@@ -243,17 +326,18 @@ def _footing_sheet(result: ProjectResult, project: Project) -> str:
         p.append(f"<dt>{k}</dt><dd>{v}</dd>")
     p.append("</dl>")
 
-    p.append(f'<table><thead><tr><th>Term</th><th>N</th><th>shape s</th>'
+    p.append(f'<div class="tw"><table><thead><tr><th>Term</th><th>N</th><th>shape s</th>'
              f'<th>depth d</th><th>incl. i</th><th>Contribution ({S})</th></tr></thead><tbody>')
     for nm, n, s_, dd, i_, t in [
         ("Cohesion", b.factors.nc, b.sc, b.dc, b.ic, b.term_cohesion),
         ("Surcharge", b.factors.nq, b.sq, b.dq, b.iq, b.term_surcharge),
         ("Self weight", b.factors.ngamma, b.sg, b.dg, b.ig, b.term_self_weight),
     ]:
-        p.append(f"<tr><td>{nm}</td><td>{n:.3f}</td><td>{s_:.3f}</td>"
+        p.append(f'<tr><td class="t">{nm}</td><td>{n:.3f}</td>'
+                 f"<td>{s_:.3f}</td>"
                  f"<td>{dd:.3f}</td><td>{i_:.3f}</td><td>{u.from_si_stress(t):,.2f}</td></tr>")
     p.append(f'</tbody><tfoot><tr><td colspan="5">q_ult (gross ultimate)</td>'
-             f'<td>{u.from_si_stress(b.q_ult):,.2f}</td></tr></tfoot></table>')
+             f'<td>{u.from_si_stress(b.q_ult):,.2f}</td></tr></tfoot></table></div>')
 
     p.append(f'<div class="eq">q_allow = q_ult / FS = '
              f'{_f(u.from_si_stress(b.q_ult))} / {b.factor_of_safety:g} '
@@ -266,8 +350,8 @@ def _footing_sheet(result: ProjectResult, project: Project) -> str:
         p.append("<h2>Settlement</h2>")
         p.append('<dl class="kv">')
         for k, v in [
-            ("Net pressure &Delta;q", f"{_f(u.from_si_stress(st.net_pressure))} {S}"),
-            ("&sigma;&prime;v0 at founding level", f"{_f(u.from_si_stress(st.sigma_v0_base))} {S}"),
+            ('Net pressure <span class="g">&Delta;q</span>', f"{_f(u.from_si_stress(st.net_pressure))} {S}"),
+            ('<span class="g">&sigma;&prime;v0</span> at founding level', f"{_f(u.from_si_stress(st.sigma_v0_base))} {S}"),
             ("C1 (embedment)", f"{st.c1:.4f}"),
             (f"C2 (creep, {project.criteria.time_years:g} yr)", f"{st.c2:.4f}"),
             ("Izp (peak strain influence)", f"{st.izp:.4f}"),
@@ -278,16 +362,16 @@ def _footing_sheet(result: ProjectResult, project: Project) -> str:
 
         rows = [s for s in st.sublayers if abs(s.settlement) > 1e-9]
         if rows:
-            p.append(f'<table><thead><tr><th>From ({L})</th><th>To ({L})</th>'
+            p.append(f'<div class="tw"><table><thead><tr><th>From ({L})</th><th>To ({L})</th>'
                      f'<th>Layer</th><th>Method</th><th>Settlement ({SL})</th>'
                      f'</tr></thead><tbody>')
             for s in rows:
                 p.append(f"<tr><td>{u.from_si_length(s.z_top):.2f}</td>"
                          f"<td>{u.from_si_length(s.z_bot):.2f}</td>"
-                         f"<td>{_esc(s.layer_name)}</td><td>{_esc(s.method)}</td>"
+                         f'<td class="t">{_esc(s.layer_name)}</td><td class="t">{_esc(s.method)}</td>'
                          f"<td>{u.from_si_settlement(s.settlement):.4f}</td></tr>")
             p.append(f'</tbody><tfoot><tr><td colspan="4">Total</td>'
-                     f'<td>{u.from_si_settlement(st.total):.4f}</td></tr></tfoot></table>')
+                     f'<td>{u.from_si_settlement(st.total):.4f}</td></tr></tfoot></table></div>')
 
         p.append(f'<div class="eq">Immediate / Schmertmann '
                  f'{u.from_si_settlement(st.immediate):.4f} {SL}\n'
@@ -321,12 +405,13 @@ def _footing_sheet(result: ProjectResult, project: Project) -> str:
     return "".join(p)
 
 
-def _schedule_sheet(results: list[ProjectResult], project: Project) -> str:
+def _schedule_sheet(results: list[ProjectResult], project: Project,
+                    sheet: int | None = None, total: int | None = None) -> str:
     u = project.units
     L, S = u.label("length"), u.label("stress")
     SL = u.label("small_length")
     vol = "ft&sup3;" if u.system.value == "US" else "m&sup3;"
-    p = ['<section class="sheet">', _header(project, "Footing schedule")]
+    p = ['<section class="sheet">', _header(project, "Footing schedule", sheet, total)]
 
     total_vol = sum(r.concrete_volume for r in results if r.design.ok)
     n_ok = sum(1 for r in results if r.design.ok)
@@ -341,38 +426,47 @@ def _schedule_sheet(results: list[ProjectResult], project: Project) -> str:
              + ", ".join(f"{k}: {v}" for k, v in sorted(gov.items())) + "</dd>")
     p.append("</dl>")
 
-    p.append(f'<table><thead><tr><th>Mark</th><th>B ({L})</th><th>L ({L})</th>'
-             f'<th>t ({L})</th><th>Df ({L})</th><th>q applied ({S})</th>'
-             f'<th>q allow ({S})</th><th>Settl. ({SL})</th><th>Governs</th>'
-             f'<th>Status</th></tr></thead><tbody>')
-    for r in results:
+    def th(label: str, unit: str | None = None) -> str:
+        return (f'<th>{label}<span class="u">({unit})</span></th>' if unit
+                else f'<th>{label}</th>')
+
+    p.append('<div class="tw"><table><thead><tr>'
+             + th("Mark") + th("B", L) + th("L", L) + th("t", L) + th("Df", L)
+             + th("q applied", S) + th("q allow", S) + th("Settl.", SL)
+             + th("Governs") + th("Status")
+             + '</tr></thead><tbody>')
+    for sheet_no, r in enumerate(results, start=2):
         d = r.design
         if d.bearing is None:
-            p.append(f'<tr><td>{_esc(d.mark)}</td><td colspan="8">{_esc(d.message[:90])}</td>'
-                     f'<td><span class="util bad">FAIL</span></td></tr>')
+            p.append(f'<tr><td>{_esc(d.mark)}</td>'
+                     f'<td colspan="8" class="t">No spread footing satisfies the '
+                     f'criteria &mdash; see sheet {sheet_no}</td>'
+                     f'<td class="t"><span class="util bad">FAIL</span></td></tr>')
             continue
         status = ('<span class="util ok">OK</span>' if d.ok
                   else '<span class="util bad">FAIL</span>')
         p.append(f"<tr><td>{_esc(d.mark)}</td><td>{_f(r.b)}</td><td>{_f(r.l)}</td>"
                  f"<td>{_f(r.thickness)}</td><td>{_f(r.df)}</td>"
                  f"<td>{_f(r.q_applied)}</td><td>{_f(r.q_allow)}</td>"
-                 f"<td>{r.settlement:.3f}</td><td>{_esc(d.governing)}</td>"
-                 f"<td>{status}</td></tr>")
-    p.append("</tbody></table>")
+                 f"<td>{r.settlement:.3f}</td>"
+                 f'<td class="t">{_esc(d.governing)}</td>'
+                 f'<td class="t">{status}</td></tr>')
+    p.append("</tbody></table></div>")
 
     p.append("<h2>Soil profile</h2>")
-    p.append(f'<table><thead><tr><th>Depth ({L})</th><th>Layer</th><th>Analysis</th>'
-             f'<th>&gamma; ({u.label("unit_weight")})</th><th>&phi;&prime; (&deg;)</th>'
-             f'<th>c / su ({S})</th></tr></thead><tbody>')
+    p.append(f'<div class="tw"><table><thead><tr><th>Depth ({L})</th><th>Layer</th><th>Analysis</th>'
+             f'<th><span class="g">&gamma;</span><span class="u">({u.label("unit_weight")})</span></th>'
+             f'<th><span class="g">&phi;&prime;</span><span class="u">(&deg;)</span></th>'
+             f'<th>c / su<span class="u">({S})</span></th></tr></thead><tbody>')
     prof = project.profile
     for i, layer in enumerate(prof.layers):
         p.append(f"<tr><td>{u.from_si_length(prof.layer_top(i)):.2f} &ndash; "
                  f"{u.from_si_length(prof.layer_bottom(i)):.2f}</td>"
-                 f"<td>{_esc(layer.name)}</td><td>{layer.drainage.value}</td>"
+                 f'<td class="t">{_esc(layer.name)}</td><td class="t">{layer.drainage.value}</td>'
                  f"<td>{u.from_si_unit_weight(layer.gamma):.1f}</td>"
                  f"<td>{layer.phi:.1f}</td>"
                  f"<td>{u.from_si_stress(layer.cohesion):.2f}</td></tr>")
-    p.append("</tbody></table>")
+    p.append("</tbody></table></div>")
     wt = prof.water_table_depth
     p.append(f'<p>Groundwater: '
              f'{"not encountered" if wt == float("inf") else f"{u.from_si_length(wt):.2f} {L} below grade"}</p>')
@@ -395,29 +489,36 @@ def _schedule_sheet(results: list[ProjectResult], project: Project) -> str:
         ("Size increment", f"{u.from_si_length(c.size_increment):.2f} {L}"),
         ("Width searched", f"{u.from_si_length(c.min_width):.2f} &ndash; "
                            f"{u.from_si_length(c.max_width):.2f} {L}"),
-        ("N&gamma; method", c.bearing_method.value),
+        ('N<span class="g">&gamma;</span> method', _METHOD_LABEL.get(c.bearing_method.value, c.bearing_method.value)),
         ("Design life (creep)", f"{c.time_years:g} yr"),
     ]:
         p.append(f"<dt>{k}</dt><dd>{v}</dd>")
     p.append("</dl>")
 
-    p.append('<h2>Contents</h2><table class="toc"><tbody>')
+    p.append('<h2>Contents</h2><div class="tw"><table class="toc"><tbody>')
     for r in results:
         p.append(f'<tr><td><a href="#f-{_esc(r.design.mark)}">Footing '
                  f'{_esc(r.design.mark)}</a></td>'
                  f'<td>{_esc(r.design.governing)}</td></tr>')
-    p.append("</tbody></table></section>")
+    p.append("</tbody></table></div></section>")
     return "".join(p)
 
 
 def calc_package_html(results: list[ProjectResult], project: Project) -> str:
     """Full calculation package: schedule sheet followed by one sheet per
     footing. Print to PDF from any browser."""
-    body = [_schedule_sheet(results, project)]
-    body += [_footing_sheet(r, project) for r in results]
+    total = len(results) + 1
+    body = [_schedule_sheet(results, project, 1, total)]
+    body += [_footing_sheet(r, project, i, total)
+             for i, r in enumerate(results, start=2)]
     return (
         "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width,initial-scale=1'>"
         f"<title>{_esc(project.name)} - Footing calculations</title>"
+        "<link rel='preconnect' href='https://fonts.googleapis.com'>"
+        "<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>"
+        "<link rel='stylesheet' href='https://fonts.googleapis.com/css2?"
+        "family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;600"
+        "&family=Source+Sans+3:wght@400;600&display=swap'>"
         f"<style>{_CSS}</style></head><body>{''.join(body)}</body></html>"
     )

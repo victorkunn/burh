@@ -336,6 +336,21 @@ def n1_60(n_field: float, sigma_v_eff: float, energy_ratio: float = 60.0, **kw) 
     )
 
 
+#: Lower bound on effective stress used when evaluating an SPT correlation.
+#: Every SPT-to-phi correlation divides by (or normalises on) sigma'v, so near
+#: the ground surface they diverge: at sigma'v = 11 kPa, Kulhawy & Mayne
+#: returns 45 deg for a loose N = 15 fill, which no reviewer would accept.
+#: 25 kPa is roughly 1.3 m of cover and keeps the correlations in the stress
+#: range they were regressed over.
+SIGMA_V_FLOOR_KPA = 25.0
+
+#: Upper bound on a phi' taken from SPT. Design values above 40 deg are not
+#: defensible from blow counts alone; dense material that genuinely exceeds
+#: this needs triaxial data.
+PHI_CAP_DEG = 40.0
+PHI_FLOOR_DEG = 25.0
+
+
 def phi_from_spt(
     n_field: float,
     sigma_v_eff: float,
@@ -345,7 +360,20 @@ def phi_from_spt(
     """Estimate phi' [degrees] from SPT.
 
     Returns ``(phi_deg, citation)``. THIS IS AN ESTIMATE, not a measurement.
+
+    The effective stress is floored at :data:`SIGMA_V_FLOOR_KPA` and the result
+    is capped at :data:`PHI_CAP_DEG`; whenever either bound bites, the returned
+    citation says so, so the limitation travels into the calculation package
+    instead of being silently applied.
     """
+    notes: list[str] = []
+    if sigma_v_eff < SIGMA_V_FLOOR_KPA:
+        notes.append(
+            f"evaluated at a floor of {SIGMA_V_FLOOR_KPA:g} kPa rather than the "
+            f"actual {sigma_v_eff:.1f} kPa, which is below the range the "
+            "correlation was regressed over"
+        )
+        sigma_v_eff = SIGMA_V_FLOOR_KPA
     n_60 = n60(n_field, energy_ratio=energy_ratio)
     if method is PhiCorrelation.KULHAWY_MAYNE:
         # phi' = atan[ (N60 / (12.2 + 20.3 * sigma'_v/Pa)) ^ 0.34 ]
@@ -360,8 +388,19 @@ def phi_from_spt(
         n1 = n_60 * overburden_factor(sigma_v_eff)
         phi = 27.1 + 0.3 * n1 - 0.00054 * n1**2
         cite = "Wolff (1989)"
-    # Clamp to a defensible range for a design parameter.
-    phi = max(25.0, min(45.0, phi))
+    raw = phi
+    phi = max(PHI_FLOOR_DEG, min(PHI_CAP_DEG, phi))
+    if raw > PHI_CAP_DEG:
+        notes.append(
+            f"correlation returned {raw:.1f} deg and has been capped at "
+            f"{PHI_CAP_DEG:g} deg; verify with triaxial data before relying on "
+            "a higher friction angle"
+        )
+    elif raw < PHI_FLOOR_DEG:
+        notes.append(f"correlation returned {raw:.1f} deg, raised to the "
+                     f"{PHI_FLOOR_DEG:g} deg floor")
+    if notes:
+        cite = f"{cite} [{'; '.join(notes)}]"
     return phi, cite
 
 
